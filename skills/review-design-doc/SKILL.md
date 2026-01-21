@@ -38,9 +38,18 @@ description: Review kpiee-designs design docs in GitHub pull requests. Use when 
 ### 6) Content quality checks
 - Basic design: focus on What/Why/Purpose/Interface/Design philosophy; avoid implementation details.
 - Detail design: focus on How; ensure logical flow and responsibility boundaries.
+- Detail design: assume readers do not read the code; the doc must be understandable on its own without opening the codebase.
+- Detail design: avoid over-specific, code-dependent explanations; the design should be readable without opening the codebase.
+- Detail design: avoid large code blocks or full source listings; if any snippet appears, it should be minimal and used only to clarify intent/behavior.
+- If the doc reads like a code dump or relies on code to explain the design intent, flag it and request a clear, language-based explanation of intent, mechanism, and rationale.
+- Verify "概要/改修概要/設計方針" sections actually explain the feature and approach; if they only list links or headings, request a real summary in words.
+- Require concrete descriptions for "API/データ処理/バリデーション" changes (name endpoints/classes and describe behavior); flag vague phrases like "対応/検証/シリアライズ" without specifics.
+- Treat auto-generated files and regeneration commands as noise unless they are essential to design intent; request removal when included.
+- Avoid overly fine-grained UI/implementation minutiae that don't change design decisions; keep explanations at the design level.
 - Confirm assumptions and context are stated; avoid unexplained domain terms.
 - Check for over/under specification and missing rationale.
 - Follow the repo rules for release/rollback notes (only if special steps exist).
+  - Calibration examples: `skills/review-design-doc/references/detail-design-bad-good-samples.md`
 
 ### 7) Draft review comments (Japanese)
 - Prefer inline comments for concrete issues with exact file/line context.
