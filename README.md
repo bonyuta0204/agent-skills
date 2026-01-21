@@ -16,6 +16,12 @@ Clone this repo and link the skills you want into your Codex skills directory.
 make link
 ```
 
+Link all skills explicitly:
+
+```bash
+make link-all
+```
+
 Link a single skill:
 
 ```bash
@@ -27,6 +33,15 @@ Use a custom Codex home:
 ```bash
 make link CODEX_HOME=~/.my-codex
 ```
+
+Show all commands:
+
+```bash
+make help
+```
+
+Note: `make link` and `make unlink` will overwrite any existing directories or files
+at the target path.
 
 To unlink:
 
