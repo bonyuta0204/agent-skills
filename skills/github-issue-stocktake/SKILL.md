@@ -76,7 +76,7 @@ Issue本文の末尾に以下が無ければ追加し、以降は中身を置換
 - 開始マーカー/終了マーカーが両方無い場合のみ、本文末尾へ新規ブロックを追記する。
 - 開始または終了のどちらか一方だけ存在する壊れた本文は、更新を中止して手動確認に回す。
 - `AI_STOCKTAKE` ブロック以外の本文は変更しない。
-- `HUMAN_*` はPR未作成のため、Issue本文 `Human Action` を唯一の次アクション管理元とする。
+- `HUMAN_*` はPR未作成のため、Issue本文 `人間アクション` を唯一の次アクション管理元とする。
 
 ## Batch Workflow
 
@@ -143,41 +143,41 @@ Classification とラベルの対応:
 <!-- AI_STOCKTAKE_START -->
 ## AI_STOCKTAKE
 
-### Classification
-- AI_FIXABLE
+### 分類
+- AI改修可能 (`AI_FIXABLE`)
 
-### Confidence
+### 判断信頼度
 - 0.84
 
-### Summary
+### 要約
 - 事象: ...
 - 結論: ...
 
-### Evidence
+### 根拠
 - 再現結果: ...
 - 実装確認: `app/foo.ts:120` ...
 - 仕様確認: 仕様書 <Notion URL> / 画面項目定義 <Notion URL>（必要ならFigma <URL>）
 
-### Diff / Gap
+### 差分 / ギャップ
 - 仕様と実装の差分: ...
 
-### Fix Strategy（AI_FIXABLEのとき）
+### 改修方針（`AI_FIXABLE` のとき）
 - 方針: ...
 - 影響範囲: ...
 
-### Human Action（HUMAN_* のとき）
+### 人間アクション（`HUMAN_*` のとき）
 - 依頼先: ...
 - 確認事項: ...
 
-### Fix Agent Input（AI_FIXABLEのとき）
-- suspected_root_cause: ...
-- reproduction_steps:
+### 改修エージェント入力（`AI_FIXABLE` のとき）
+- 原因候補 (`suspected_root_cause`): ...
+- 再現手順 (`reproduction_steps`):
   - ...
-- expected_behavior:
+- 期待挙動 (`expected_behavior`):
   - ...
-- affected_files:
+- 影響ファイル (`affected_files`):
   - ...
-- test_plan:
+- テスト方針 (`test_plan`):
   - ...
 
 <!-- AI_STOCKTAKE_END -->
@@ -225,7 +225,7 @@ gh issue close <番号>
 
 ## Output Contract（バッチごと）
 バッチごとに次を返す。
-1. 対応Issue番号とClassification
+1. 対応Issue番号と分類（Classification）
 2. 実行アクション（ラベル/アサイン/クローズ等）
-3. `HUMAN_*` の不足根拠と次アクション
+3. `HUMAN_*`（要仕様確認/要再現確認/要起票者確認）の不足根拠と次アクション
 4. 次バッチ候補（5件）
