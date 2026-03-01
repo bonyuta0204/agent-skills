@@ -1,111 +1,223 @@
 ---
 name: github-issue-stocktake
-description: GitHub Issueの棚卸しを実行する。既存Issueを5件前後のバッチで調査し、ステータス更新、担当者アサイン、重複統合、クローズ判断、ネクストアクション整理、一次調査コメント投稿を行うときに使う。仕様書・画面項目定義・必要時のFigmaと現行実装を突合して意思決定するタスクで使う。
+description: GitHub Issueの棚卸しをAIが実行する。既存Issueを5件前後のバッチで調査し、分類（ステータス更新）、担当領域の切り分け、重複統合、クローズ判断、一次調査メモ（根拠・差分・方針）を作る。AIで直せるものは改修エージェントに渡す前提だが、改修PRの作成は別エージェントで行う。次のボールはPRのlabelで管理する。
 ---
 
-# GitHub Issue Stocktake
+# GitHub Issue Stocktake（AI Orchestration Spec）
 
-## Overview
-- 既存Issueをバッチ処理で棚卸しする。
-- 各Issueで「実装」「仕様書」「画面項目定義（必要ならFigma）」を突合して判断する。
-- ユーザーの明示指示がない限り、新規Issueを起票しない。
+## Goals
+- 未整理Issueを分類し、根拠を構造化して残す。
+- 仕様・画面項目定義・実装の突合によって、差分と結論を明文化する。
+- AIで修正可能なIssueは、改修エージェントに渡せる入力を生成する。
+- 人間が必要な作業（仕様確認・実機調査・意図補完）を明確に切り分ける。
+- 何度回してもタイムラインを汚さない（コメント爆増を防ぐ）。
+
+## Non-Goals
+- ユーザーの明示指示がない限り、新規Issueの起票はしない。
+- Stocktake AIはPRを作らない（改修は別エージェント）。
+- 次のボール（担当）をIssueで管理しない（PRのlabelで管理）。
 
 ## Inputs
-1. 対象リポジトリと対象Issue番号（または範囲）を確定する。
-2. バッチサイズを確定する（デフォルト5件）。
-3. 実行可能操作を確定する（コメント、アサイン、クローズ、重複統合）。
-4. 判定に使う参照先（仕様書、画面項目定義、Figma）を確定する。
+1. 対象リポジトリ・対象Issue番号（または範囲）
+2. バッチサイズ（デフォルト5件）
+3. 実行可能操作（Issue本文編集・ラベル付与・アサイン・クローズ・重複クローズ/リンク）
+4. 参照先（仕様書・画面項目定義・必要時のみFigma・現行実装）
+
+## Core Concept
+
+### 1) Classification（排他的）
+各Issueは必ず次のいずれか1つに分類する。
+
+- `CLOSE_DONE`
+  - 実装済み/解消済み/再現しない/仕様変更で吸収済み
+- `CLOSE_DUPLICATE`
+  - 重複。集約先Issueへ統合
+- `AI_FIXABLE`
+  - 再現手順が明確、原因箇所が概ね特定、仕様解釈不要、局所修正で対応可能
+- `HUMAN_SPEC_REQUIRED`
+  - 仕様根拠が不足、または仕様書/画面項目定義から仕様が読み取れない（該当チーム確認が必要）
+- `HUMAN_REPRO_REQUIRED`
+  - 実機調査/環境依存/外部要因でAIでは検証困難（QA/実機確認が必要）
+- `HUMAN_CONTEXT_REQUIRED`
+  - Issue記載が荒い/意図不明/再現手順不足で、起票者または関係者の補足が必要
+
+### 2) Confidence
+- AI判断には信頼度を付与する。
+- `confidence`: 0.0〜1.0
+- 原則: `AI_FIXABLE` は `confidence >= 0.75` を推奨（閾値は運用で調整）
+- `confidence < 0.75` の `AI_FIXABLE` 判定は禁止し、`HUMAN_*` に分類する。
+
+### 3) Evidence First
+- 「直っている」「仕様」「吸収済み」等の結論は、現行実装・仕様根拠・差分で裏付けてから出す。
+
+## No-Noise Policy（コメント爆増防止）
+
+### AI_STOCKTAKEブロックをIssue本文に保持する
+- タイムラインにコメントを積み重ねない。
+- Issue本文末尾にAI専用ブロックを置き、以降はブロック内だけ更新する。
+- 判定変更時（例: `HUMAN_* -> AI_FIXABLE`, `AI_FIXABLE -> CLOSE_*`）のみ、履歴可読性のために補足コメントを1件だけ許可する。
+
+### ブロック仕様（必須）
+Issue本文の末尾に以下が無ければ追加し、以降は中身を置換更新する。
+
+```md
+---
+
+<!-- AI_STOCKTAKE_START -->
+## AI_STOCKTAKE
+
+(ここはAIが更新します)
+
+<!-- AI_STOCKTAKE_END -->
+```
+
+## Body Update Safety Rules
+- 本文更新は `<!-- AI_STOCKTAKE_START -->` から `<!-- AI_STOCKTAKE_END -->` までの区間のみを置換する。
+- 開始マーカー/終了マーカーが両方無い場合のみ、本文末尾へ新規ブロックを追記する。
+- 開始または終了のどちらか一方だけ存在する壊れた本文は、更新を中止して手動確認に回す。
+- `AI_STOCKTAKE` ブロック以外の本文は変更しない。
+- `HUMAN_*` はPR未作成のため、Issue本文 `Human Action` を唯一の次アクション管理元とする。
 
 ## Batch Workflow
-1. Issue状態を取得する。
+
+### Step 1. Issue状態を取得する
 - `gh issue view <番号> --comments` で本文・履歴・最新判断を確認する。
 - 未確定事項と既存合意を分離してメモする。
 
-2. 根拠を調査する。
-- 実装は `rg` を起点に該当コードを読む。
-- 仕様書と画面項目定義を確認し、実装と差分を明文化する。
+### Step 2. 根拠を調査する
+- 実装: `rg` を起点に該当コードへ到達し、関連箇所を読む。
+- 仕様: 仕様書と画面項目定義を確認し、実装との差分を明文化する。
 - UI仕様が曖昧な場合のみFigmaを追加確認する。
 
-3. 判定する。
-- `Close` : 再現しない、仕様変更で吸収済み、重複、実装済みで問題解消。
-- `Keep Open` : 未解決、または実装/仕様の差分が残る。
-- `Spec Confirming` : 仕様根拠が不足し、仕様確認待ち。
+### Step 3. 分類を決める
+- `CLOSE_*` / `AI_FIXABLE` / `HUMAN_*` のいずれかを1つ選ぶ。
+- 必ず `confidence` と根拠をセットで残す。
 
-4. 反映する。
-- 合意済みユーザーをアサインする。
-- クローズ時は、先にMarkdownコメントで根拠を残してからクローズする。
-- クローズできない場合は一次調査コメントを投稿する。
+### Step 4. 反映する
+- Issue本文の `AI_STOCKTAKE` ブロックを更新する。
+- 必要ならラベル・アサインを更新する。
+- クローズ時は本文に根拠が残っていることを確認してクローズする。
 
-5. バッチ報告する。
-- 実施Issue、実行アクション、コメントURLを列挙する。
-- 保留Issueは「不足根拠」と「次アクション」を1行で示す。
+### Step 5. バッチ報告する
+- 実施Issue、分類、実行アクションを列挙する。
+- 保留Issueは「不足根拠」と「次アクション（人間がやるべき内容）」を1行で示す。
 
 ## Decision Rules
-- 重複クローズ時は必ず集約先Issue番号を明記する。
+- 重複クローズ時は必ず集約先Issue番号を明記する（例: `#123`）。
 - 「直っている」判定は現行実装で根拠を確認してから行う。
-- 「仕様変更でクローズ」は変更後仕様の根拠を添える。
-- 仕様書/画面項目定義を参照した場合は、IssueコメントにNotionページURLを必ず明記する。
+- 「仕様変更でクローズ」は変更後仕様の根拠（参照URL）を添える。
+- 仕様書/画面項目定義を参照した場合は、AI_STOCKTAKE内にNotionページURLを必ず明記する。
 - 根拠不足時は無理にクローズせず、調査結果と不足点を残す。
-- GitHubへ投稿する本文は、必ずGitHub Flavored Markdown（GFM）で構造化する。
-- 単なる1段落のプレーンテキスト投稿は不可。最低限「見出し1つ + 箇条書き1つ」を含める。
 
-## GitHub Comment Format Rules (Mandatory)
-- すべての一次調査コメントは `.md` ファイルを作ってから投稿する。
-- 投稿前に `cat` で最終本文を確認し、見出し・箇条書き・コード表記が崩れていないことを確認する。
-- ファイルパス/コマンド/識別子はバッククォートで囲む（例: `` `app/foo.ts:120` ``）。
-- 参照Issueは `#123` の形式で明記する。
-- クローズ時は「Markdownコメント投稿 -> issue close」の順で実行し、根拠を履歴に残す。
+## Label Strategy（推奨）
 
-## Comment Templates
-### 一次調査
+### Issueラベル（分類）
+分類はダッシュボード化のためIssueラベルに反映してよい。
+
+- `ai:close-done`
+- `ai:close-duplicate`
+- `ai:fixable`
+- `ai:human-spec`
+- `ai:human-repro`
+- `ai:human-context`
+
+### 排他運用（推奨）
+- Stocktake実行時、既存の `ai:*` 分類ラベルを削除し、1つだけ付与する。
+
+### PRラベル（次のボール）
+- 次のボール（担当/状態）はPRのlabelで管理する。
+- Stocktake AIはPRを作らない。
+
+## AI_STOCKTAKE ブロックフォーマット（Mandatory）
+更新する本文はGFMで構造化し、最低限「見出し + 箇条書き」を含める。
+
 ```md
-## 一次調査メモ
+<!-- AI_STOCKTAKE_START -->
+## AI_STOCKTAKE
 
-### 現象
-- ...
+### Classification
+- AI_FIXABLE
 
-### 調査結果
+### Confidence
+- 0.84
+
+### Summary
+- 事象: ...
+- 結論: ...
+
+### Evidence
 - 再現結果: ...
-- 実装確認: `<path>:<line>` ...
+- 実装確認: `app/foo.ts:120` ...
 - 仕様確認: 仕様書 <Notion URL> / 画面項目定義 <Notion URL>（必要ならFigma <URL>）
 
-### 結論
-- 判定: クローズ可 / 継続調査 / 仕様確認中
-- 方針案: ...
-```
+### Diff / Gap
+- 仕様と実装の差分: ...
 
-### 重複クローズ
-```md
-## クローズ理由（重複）
+### Fix Strategy（AI_FIXABLEのとき）
+- 方針: ...
+- 影響範囲: ...
 
-- 重複のためクローズします。
-- 追跡は #<集約先Issue番号> に集約します。
-```
+### Human Action（HUMAN_* のとき）
+- 依頼先: ...
+- 確認事項: ...
 
-### 仕様確認中
-```md
-## 判定: 仕様確認中
+### Fix Agent Input（AI_FIXABLEのとき）
+- suspected_root_cause: ...
+- reproduction_steps:
+  - ...
+- expected_behavior:
+  - ...
+- affected_files:
+  - ...
+- test_plan:
+  - ...
 
-- 仕様書・画面項目定義で明記を確認できなかったため、現時点は仕様確認中として扱います。
-- 確認待ち: <確認対象と担当>
+<!-- AI_STOCKTAKE_END -->
 ```
 
 ## Command Patterns
 ```bash
+# 状態確認
 gh issue view <番号> --comments
-cat > /tmp/issue-<番号>-comment.md <<'EOF'
-## 一次調査メモ
+
+# 本文取得
+gh issue view <番号> --json body -q .body > /tmp/issue-<番号>-body.md
+
+# AI_STOCKTAKEブロックを作成
+cat > /tmp/issue-<番号>-stocktake.md <<'__BLOCK_EOF__'
+<!-- AI_STOCKTAKE_START -->
+## AI_STOCKTAKE
 ...
-EOF
-cat /tmp/issue-<番号>-comment.md
-gh issue comment <番号> --body-file /tmp/issue-<番号>-comment.md
+<!-- AI_STOCKTAKE_END -->
+__BLOCK_EOF__
+
+# 本文更新（安全にブロックのみ更新）
+skills/github-issue-stocktake/scripts/upsert_ai_stocktake_block.sh \
+  --body-file /tmp/issue-<番号>-body.md \
+  --block-file /tmp/issue-<番号>-stocktake.md \
+  --out-file /tmp/issue-<番号>-new-body.md
+
+# 反映
+gh issue edit <番号> --body-file /tmp/issue-<番号>-new-body.md
+
+# ラベル排他更新（例）
+gh issue edit <番号> \
+  --remove-label ai:close-done --remove-label ai:close-duplicate \
+  --remove-label ai:fixable --remove-label ai:human-spec \
+  --remove-label ai:human-repro --remove-label ai:human-context
+
+gh issue edit <番号> --add-label ai:fixable
+
+# アサイン（必要時）
 gh issue edit <番号> --add-assignee <user>
+
+# クローズ
 gh issue close <番号>
 ```
 
-## Output Contract
+## Output Contract（バッチごと）
 バッチごとに次を返す。
-1. 対応済みIssue番号と実行アクション
-2. 投稿コメントURL
-3. オープン維持したIssueと理由
+1. 対応Issue番号とClassification
+2. 実行アクション（ラベル/アサイン/クローズ等）
+3. `HUMAN_*` の不足根拠と次アクション
 4. 次バッチ候補（5件）
