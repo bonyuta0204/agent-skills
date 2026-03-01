@@ -114,15 +114,23 @@ Issue本文の末尾に以下が無ければ追加し、以降は中身を置換
 ### Issueラベル（分類）
 分類はダッシュボード化のためIssueラベルに反映してよい。
 
-- `ai:close-done`
-- `ai:close-duplicate`
-- `ai:fixable`
-- `ai:human-spec`
-- `ai:human-repro`
-- `ai:human-context`
+- `クローズ可（解消）`
+- `クローズ可（重複）`
+- `AI改修可能`
+- `要仕様確認`
+- `要再現確認`
+- `要起票者確認`
+
+Classification とラベルの対応:
+- `CLOSE_DONE` -> `クローズ可（解消）`
+- `CLOSE_DUPLICATE` -> `クローズ可（重複）`
+- `AI_FIXABLE` -> `AI改修可能`
+- `HUMAN_SPEC_REQUIRED` -> `要仕様確認`
+- `HUMAN_REPRO_REQUIRED` -> `要再現確認`
+- `HUMAN_CONTEXT_REQUIRED` -> `要起票者確認`
 
 ### 排他運用（推奨）
-- Stocktake実行時、既存の `ai:*` 分類ラベルを削除し、1つだけ付与する。
+- Stocktake実行時、上記6つの分類ラベルのうち既存ラベルを削除し、1つだけ付与する。
 
 ### PRラベル（次のボール）
 - 次のボール（担当/状態）はPRのlabelで管理する。
@@ -202,11 +210,11 @@ gh issue edit <番号> --body-file /tmp/issue-<番号>-new-body.md
 
 # ラベル排他更新（例）
 gh issue edit <番号> \
-  --remove-label ai:close-done --remove-label ai:close-duplicate \
-  --remove-label ai:fixable --remove-label ai:human-spec \
-  --remove-label ai:human-repro --remove-label ai:human-context
+  --remove-label 'クローズ可（解消）' --remove-label 'クローズ可（重複）' \
+  --remove-label 'AI改修可能' --remove-label '要仕様確認' \
+  --remove-label '要再現確認' --remove-label '要起票者確認'
 
-gh issue edit <番号> --add-label ai:fixable
+gh issue edit <番号> --add-label 'AI改修可能'
 
 # アサイン（必要時）
 gh issue edit <番号> --add-assignee <user>
