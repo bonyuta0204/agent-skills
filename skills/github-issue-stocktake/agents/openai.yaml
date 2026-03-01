@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Issue棚卸し"
+  short_description: "Issueを5件単位で調査し、GFM整形コメントで重複整理・ステータス更新する運用フロー"
+  default_prompt: "このリポジトリのIssue棚卸しを5件進める。仕様書と画面項目定義を突合し、重複整理・ステータス更新・次アクションを実施する。GitHub投稿は必ず見出しと箇条書きを含むGFMで作成し、--body-fileで投稿する。"

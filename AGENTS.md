@@ -37,3 +37,11 @@
 
 - Skills are the source of truth. Do not modify linked copies under `~/.codex/skills/` directly.
 - Prefer updating `README.md` when adding or changing skills so contributors can discover them quickly.
+
+## Session Learnings
+
+### repo-specific
+- `skills/` に新しい skill を追加したら、同じ変更セットで `README.md` の Skill catalog を必ず更新する。
+
+### general/reusable
+- `~/.codex/skills` で個別管理していた skill を repo 管理に移すときは、(1) skill ディレクトリを `skills/<name>/` にコピー、(2) `make link SKILL=<name>` でリンクを切り替え、(3) `~/.codex/skills/<name>` が repo 配下へのシンボリックリンクになっていることを確認する。
