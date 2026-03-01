@@ -42,6 +42,8 @@
 
 ### repo-specific
 - `skills/` に新しい skill を追加したら、同じ変更セットで `README.md` の Skill catalog を必ず更新する。
+- `github-issue-stocktake` は、Issueタイムラインへの連続コメントではなく、Issue本文の `AI_STOCKTAKE` ブロック更新を正とする。
 
 ### general/reusable
 - `~/.codex/skills` で個別管理していた skill を repo 管理に移すときは、(1) skill ディレクトリを `skills/<name>/` にコピー、(2) `make link SKILL=<name>` でリンクを切り替え、(3) `~/.codex/skills/<name>` が repo 配下へのシンボリックリンクになっていることを確認する。
+- マーカー区間を更新する運用では、開始/終了マーカーが片方だけ存在する壊れた状態をエラーで止め、全体本文を壊さない更新スクリプトを使う。
