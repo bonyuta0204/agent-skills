@@ -69,6 +69,13 @@ if [[ $has_start -ne $has_end ]]; then
   exit 1
 fi
 
+start_count=$(rg -c --fixed-strings "$START" "$BODY_FILE" || true)
+end_count=$(rg -c --fixed-strings "$END" "$BODY_FILE" || true)
+if [[ "${start_count:-0}" -gt 1 || "${end_count:-0}" -gt 1 ]]; then
+  echo "Body has multiple AI_STOCKTAKE marker pairs. Manual fix required." >&2
+  exit 1
+fi
+
 block_content="$(cat "$BLOCK_FILE")"
 if ! printf '%s' "$block_content" | rg -q --fixed-strings "$START"; then
   block_content="$START

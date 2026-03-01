@@ -1,4 +1,4 @@
 interface:
   display_name: "GitHub Issue棚卸し"
-  short_description: "Issueを分類し、本文のAI_STOCKTAKEブロックを更新して次アクションを整理する運用フロー"
-  default_prompt: "このリポジトリのIssue棚卸しを1バッチ進める。各Issueを排他的に分類し、confidenceと根拠を付けて本文のAI_STOCKTAKEブロックだけを更新する。AI_FIXABLEは改修エージェント入力を作成し、HUMAN_*は確認事項を明示する。"
+  short_description: "Issueを分類し、本文のAI_STOCKTAKEブロック更新とラベル付与までを行う運用フロー"
+  default_prompt: "このリポジトリのIssue棚卸しを1バッチ進める。各Issueを排他的に分類し、confidenceと根拠を付けて本文のAI_STOCKTAKEブロックだけを更新する。分類ラベルを付与するがIssueはクローズしない。AI_FIXABLEは改修エージェント入力を作成し、HUMAN_*は確認事項を明示する。"
