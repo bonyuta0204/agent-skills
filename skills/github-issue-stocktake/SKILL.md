@@ -9,15 +9,15 @@ description: GitHub Issue棚卸しのPMエージェント。一次調査はworke
 
 このskillは **PM専任** で動く。
 
-- PM: キュー作成、worker起動、品質ゲート、GitHub更新、バッチ報告
+- PM: キュー作成、worker起動、品質ゲート、GitHub更新、重複検出、報告
 - Worker: 一次調査と厳格JSONレポート返却のみ
 
-責務分離により、調査の並列性と運用ガバナンス（No-Noise、分類排他、信頼度閾値）を同時に満たす。
+Workerによる調査を並列で高速に回しつつ、PMが完了順に検証・重複チェック・適用を逐次処理する（ワーカープール方式）。
 
 ## Goals
 
 - 未整理Issueを分類し、根拠を構造化して残す。
-- 一次調査をworkerへ並列委譲し、PMは統制に集中する。
+- 一次調査をworkerへ委譲し、PMは統制に集中する。
 - `AI_FIXABLE` の改修引き渡し情報を標準化する。
 - `HUMAN_*` の次アクションを明確化する。
 - タイムラインを汚さず、Issue本文 `AI_STOCKTAKE` ブロックを唯一の更新面にする。
@@ -36,10 +36,9 @@ description: GitHub Issue棚卸しのPMエージェント。一次調査はworke
 
 ## Optional Inputs / Defaults
 
-- `batch_size`: default `5`
-- `max_parallel_agents`: default `3`
-- `allow_duplicate_cluster_task`: default `true`
+- `max_workers`: default `3`（同時に起動するworker数。ワーカープールのサイズ）
 - `confidence_threshold_ai_fixable`: default `0.75`
+- `prioritize_untriaged_first`: default `true`
 
 ## Classification（Exclusive）
 
@@ -93,8 +92,8 @@ description: GitHub Issue棚卸しのPMエージェント。一次調査はworke
 }
 ```
 
-- `task_mode` は `single_issue` または `duplicate_cluster`
-- `issue_numbers` は通常1件。重複疑いクラスタ時のみ複数件可。
+- `task_mode` は `single_issue` 固定（重複判定はPMが処理済みサマリとの照合で行う）。
+- `issue_numbers` は常に1件。
 
 ### Worker -> PM Output JSON（Strict）
 
@@ -121,6 +120,12 @@ description: GitHub Issue棚卸しのPMエージェント。一次調査はworke
 - `CLOSE_DUPLICATE`: `duplicate_of_issue`
 - `HUMAN_*`: `human_action_owner`, `human_action_items`
 
+`AI_FIXABLE` の型制約（厳格）:
+- `reproduction_steps`: non-empty string array
+- `expected_behavior`: non-empty string array（**string単体は不可**）
+- `affected_files`: non-empty string array
+- `test_plan`: non-empty string array
+
 ## PM Quality Gate
 
 1. 壊れたJSON、必須不足、enum外分類は reject。
@@ -145,42 +150,91 @@ description: GitHub Issue棚卸しのPMエージェント。一次調査はworke
 
 ### 1) Intake
 
-- `gh issue view <issue> --comments` で既存文脈を確認。
-- 既存 `AI_STOCKTAKE` を見て再実行優先度を決める。
-- 重複疑いが強いものをクラスタ化（`allow_duplicate_cluster_task=true` の場合）。
-- 実行ボードを作る: `issue`, `lane`, `task_mode`, `status`, `retry_count`。
+- `gh issue list` で対象Issueの一覧を取得。
+- 各Issueの既存ラベル・`AI_STOCKTAKE` 有無を確認し、処理キューを作成。
+- 処理キュー: `issue`, `status`（pending / in_flight / done / failed）, `retry_count`。
 
-### 2) Assignment
+優先度ルール（`prioritize_untriaged_first=true`）:
+- `分類ラベルなし` かつ `AI_STOCKTAKEブロックなし` のIssueを最優先に処理する。
+- 既に `分類ラベルあり` かつ `AI_STOCKTAKEあり` のIssueは、明示指示がある場合のみ再棚卸しする。
 
-- 既定 `max_parallel_agents=3`。
-- 通常Issueは `1Issue=1Worker`。
-- 重複クラスタは `duplicate_cluster` でまとめて1Workerに委譲可。
+### 2) Worker Pool Loop
 
-### 3) Spawn Workers
+`max_workers` 分のスロットを持つワーカープールで処理する。
+
+```
+初期: キューから max_workers 件を取り出し、各スロットにWorkerを起動
+ループ:
+  いずれかのWorkerが完了 →
+    3) Validate → 4) Duplicate Check → 5) Apply → サマリ蓄積
+    キューに残りがあれば空きスロットに次のWorkerを起動
+全スロット完了 かつ キュー空 → 6) Report
+```
+
+### 3) Spawn Worker
 
 - Worker agent定義: `agents/openai-worker.yaml`
-- Workerへの指示は「調査とJSON返却のみ」。
+- 1Issue = 1Worker。Workerへの指示は「調査とJSON返却のみ」。
 - Workerは `gh issue edit` やラベル更新をしてはいけない。
 
 ### 4) Validate & Normalize
 
 - `scripts/validate_worker_report.sh --json-file <file>` で検証。
+- `AI_FIXABLE` で `expected_behavior` が string の場合は reject（配列化を指示して再試行）。
 - 失敗したtaskは1回だけ再試行。
 - 2回失敗したIssueは `HUMAN_CONTEXT_REQUIRED` へ退避。
 
-### 5) Apply（PM only）
+### 5) Duplicate Check（PM判断・逐次）
 
-- `scripts/render_stocktake_block_from_json.sh --json-file <file> --issue <n> --out-file <block>`
+- PMは処理済みIssueのサマリ（番号・分類・要約・根拠キーワード）を蓄積している。
+- Worker結果を **完了順に1件ずつ** 処理済みサマリと照合し、同一原因・同一症状のIssueがないか判定する。
+- 重複を検出した場合:
+  - ユーザーに「#N は処理済み #M と同じ原因に見えます。重複として集約していいですか？」と相談する。
+  - ユーザー承認後、分類を `CLOSE_DUPLICATE`（`duplicate_of_issue: M`）に上書きする。
+- 重複でなければWorkerの分類をそのまま採用。
+- 注: 先に完了したIssueほど比較対象が少ないため、処理順による検出漏れは許容する。
+
+### 6) Apply（PM only・逐次）
+
+- `scripts/render_stocktake_block_from_json.sh` でブロック生成。
 - `scripts/upsert_ai_stocktake_block.sh` で本文反映。
 - 分類ラベル6種を一度除去してから1つだけ付与。
 - 必要時のみ assignee 更新。
+- **処理済みサマリに追加してから**、空きスロットに次のWorkerを投入。
 
-### 6) Batch Report
+### 7) Report
 
-- Issueごとの分類
-- 実行アクション（本文/ラベル/アサイン）
-- 失敗理由、退避理由
-- 次バッチ候補
+- 全件完了後にまとめて報告。
+- Issueごとの分類・実行アクション・失敗/退避理由。
+- 重複として集約したペアの一覧。
+
+## PM Communication Rules
+
+### 基本姿勢
+
+- ユーザーはシステムのドメイン知識やバグの背景情報を持っている前提で動く。
+- PMは自分の調査だけで埋められない情報ギャップを認識し、**主体的にユーザーへ聞きに行く**。
+- 十分な根拠がある判断にいちいち承認を求めない。聞くのは「情報が足りないとき」。
+
+### ユーザーに相談すべき場面
+
+1. **仕様の所在が不明**: Issueが参照する仕様・設計ドキュメントが見つからないとき、ユーザーにポインタを聞く。
+2. **再現条件が特定できない**: Issueの記述とコードだけでは再現手順を組み立てられないとき、心当たりを聞く。
+3. **ドメイン固有の制約**: インフラ制約・外部依存・運用ルールなど、コードから読み取れない背景があるとき。
+4. **Issue間の関係が不明**: 別々に起票されたIssueが同一原因に見えるとき、意図的な分割か聞く。
+5. **影響範囲の判断材料不足**: コード上は軽微に見えるが顧客影響やビジネス優先度が不明なとき。
+6. **分類根拠が薄い**: Workerの調査結果だけでは分類の確信が持てず、ユーザーの知見で判断が変わり得るとき。
+
+### 聞き方のガイドライン
+
+- 「○○が分からないので調べています」ではなく「○○について心当たりありますか？」と具体的に聞く。
+- 質問は1回のメッセージにまとめる。小出しにしない。
+- ユーザーの回答を得たら、それを踏まえて分類・根拠に反映し、反映した旨を伝える。
+
+### 進捗共有
+
+- 進捗報告は簡潔に: 処理中Issue・反映済み件数・詰まりポイントを短文で伝える。
+- 全件正常なら逐一報告しない。異常やユーザー判断が必要な場面で伝える。
 
 ## AI_STOCKTAKE Block Format（Mandatory）
 
