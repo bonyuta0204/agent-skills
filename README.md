@@ -69,7 +69,7 @@ make unlink SKILL=create-design-doc
 | Skill | Description |
 | --- | --- |
 | [`create-design-doc`](skills/create-design-doc/SKILL.md) | Create kpiee design docs (basic or detail) in kpiee-designs using repo templates. |
-| [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | Execute GitHub issue stocktake in small batches with implementation/spec cross-checks and action updates. |
+| [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake with worker-based primary investigation, strict JSON validation, and controlled issue body/label updates. |
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
 | [`review-design-doc`](skills/review-design-doc/SKILL.md) | Review kpiee-designs design docs in GitHub pull requests. |
 
