@@ -1,0 +1,6 @@
+interface:
+  display_name: "KPIEE Batch Fix PM"
+  short_description: "PM orchestration for kpiee batch fixes"
+  default_prompt: "Use $kpiee-batch-fix-pm to orchestrate AI-fixable issue batches with flexible assignment and CI approvals."
+policy:
+  allow_implicit_invocation: true
