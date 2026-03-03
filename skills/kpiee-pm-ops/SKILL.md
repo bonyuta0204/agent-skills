@@ -105,6 +105,13 @@ PM本体は意思決定と統合に集中し、調査・実行・報告はサブ
 2. 進捗、残課題、次アクションを同時に提示する。
 3. 次セッション再開用にPMボードを更新する。
 
+### 6) Learn and Improve
+
+1. セッション終了時に学びを `memory/learning-log.md` へ追記する。
+2. 一時的ノウハウと恒久ルールを分離し、恒久ルールは `memory/playbook.md` へ昇格する。
+3. 同種の課題が3回以上再発した場合、`memory/update-proposals.md` にスキル更新提案を作成する。
+4. スキル更新を実施したら、更新内容と理由を学習ログへ記録する。
+
 ## Output Contracts
 
 サブエージェントの出力はすべて構造化し、PMは必要最小限のみ保持する。  
@@ -125,6 +132,9 @@ PM本体は意思決定と統合に集中し、調査・実行・報告はサブ
 kpiee運用で守るべき最低限のガバナンスは  
 [references/kpiee-governance.md](references/kpiee-governance.md) を参照する。
 
+自己改善の運用手順は  
+[references/self-improvement-protocol.md](references/self-improvement-protocol.md) を参照する。
+
 ## Communication Rules
 
 1. 情報不足時のみユーザーへ確認し、過剰確認はしない。
@@ -137,6 +147,7 @@ kpiee運用で守るべき最低限のガバナンスは
 1. 長文ログをPMコンテキストへ残さない。
 2. フェーズ完了ごとに不要な詳細を破棄する。
 3. 再開時はPMボードの最新状態だけを起点にする。
+4. 学習ログは `memory/` 配下へ永続化し、会話コンテキストには持ち込まない。
 
 ## Failure Handling
 
@@ -157,3 +168,30 @@ kpiee運用で守るべき最低限のガバナンスは
 - 優先順位
 - 期限
 - 現在のブロッカー
+
+## Memory Files
+
+- `memory/learning-log.md`: セッションごとの学習ログ（追記専用）
+- `memory/playbook.md`: 再利用ルールとチェックリスト（安定版）
+- `memory/update-proposals.md`: スキル更新候補（要約）
+
+## Learning Commands
+
+```bash
+# 学びを1件追記
+./scripts/record_learning.sh \
+  --type workflow \
+  --signal "CI waiting承認漏れ" \
+  --action "pending_deployments確認を先頭ステップへ移動" \
+  --scope "dx-kpiee" \
+  --evidence "run 18273645"
+
+# 反復発生パターンを集計
+./scripts/review_learnings.sh
+
+# スキル更新提案を追加
+./scripts/propose_skill_update.sh \
+  --title "CI waiting対応を標準手順化" \
+  --reason "同種インシデントが3回発生" \
+  --change "references/kpiee-governance.mdに手順追加"
+```
