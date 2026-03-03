@@ -135,6 +135,14 @@ kpiee運用で守るべき最低限のガバナンスは
 自己改善の運用手順は  
 [references/self-improvement-protocol.md](references/self-improvement-protocol.md) を参照する。
 
+## Hard Safety Rules
+
+1. ユーザーの明示指示がない限り、PRをマージしない。
+2. ユーザーの明示指示がない限り、Issueをクローズしない。
+3. ユーザーの明示指示がない限り、`push --force`、ブランチ削除、履歴改変を行わない。
+4. マージ指示を受けた場合でも、対象PR番号、マージ先、想定影響を確認してから実行する。
+5. 指示が曖昧な場合は実行せず、確認質問を1回だけ行う。
+
 ## Communication Rules
 
 1. 情報不足時のみユーザーへ確認し、過剰確認はしない。
