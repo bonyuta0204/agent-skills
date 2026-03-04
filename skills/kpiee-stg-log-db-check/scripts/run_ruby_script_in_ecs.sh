@@ -3,7 +3,7 @@ set -euo pipefail
 
 if [[ "$#" -lt 2 ]]; then
   echo "usage: $0 <task_id> <local_script.rb> [runner_arg ...]" >&2
-  echo "env: ECS_CLUSTER (default: kpiee-stg), ECS_CONTAINER (default: kpiee-stg-rails), AWS_REGION (default: us-west-2)" >&2
+  echo "env: ECS_CLUSTER=<cluster> ECS_CONTAINER=<container> AWS_REGION=<region(optional)>" >&2
   exit 1
 fi
 
@@ -17,9 +17,30 @@ if [[ ! -f "$LOCAL_SCRIPT" ]]; then
   exit 1
 fi
 
-REGION="${AWS_REGION:-us-west-2}"
-CLUSTER="${ECS_CLUSTER:-kpiee-stg}"
-CONTAINER="${ECS_CONTAINER:-kpiee-stg-rails}"
+resolve_region() {
+  if [[ -n "${AWS_REGION:-}" ]]; then
+    printf '%s\n' "$AWS_REGION"
+    return 0
+  fi
+
+  local configured
+  configured="$(aws configure get region 2>/dev/null || true)"
+  if [[ -n "$configured" ]]; then
+    printf '%s\n' "$configured"
+    return 0
+  fi
+
+  printf '%s\n' "us-east-1"
+}
+
+REGION="$(resolve_region)"
+CLUSTER="${ECS_CLUSTER:-}"
+CONTAINER="${ECS_CONTAINER:-}"
+
+if [[ -z "$CLUSTER" || -z "$CONTAINER" ]]; then
+  echo "ECS_CLUSTER and ECS_CONTAINER must be set." >&2
+  exit 1
+fi
 
 if ! command -v aws >/dev/null 2>&1; then
   echo "aws command not found" >&2

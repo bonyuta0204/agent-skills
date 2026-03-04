@@ -10,7 +10,24 @@ LOG_GROUP="$1"
 START_ISO="$2"
 END_ISO="$3"
 QUERY_STRING="${4:-fields @timestamp, @logStream, @message | sort @timestamp desc | limit 100}"
-REGION="${5:-${AWS_REGION:-us-west-2}}"
+
+resolve_region() {
+  if [[ -n "${AWS_REGION:-}" ]]; then
+    printf '%s\n' "$AWS_REGION"
+    return 0
+  fi
+
+  local configured
+  configured="$(aws configure get region 2>/dev/null || true)"
+  if [[ -n "$configured" ]]; then
+    printf '%s\n' "$configured"
+    return 0
+  fi
+
+  printf '%s\n' "us-east-1"
+}
+
+REGION="${5:-$(resolve_region)}"
 
 to_epoch() {
   python3 - "$1" <<'PY'

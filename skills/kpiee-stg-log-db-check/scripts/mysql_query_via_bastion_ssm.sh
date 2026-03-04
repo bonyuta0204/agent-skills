@@ -16,7 +16,7 @@ options:
   --user <name>                   MySQL user (optional)
   --bastion-instance <instance>   SSM-managed EC2 instance ID
   --defaults-file <path>          MySQL defaults file path on bastion
-  --region <region>               AWS region (default: AWS_REGION or us-west-2)
+  --region <region>               AWS region (default: AWS_REGION or aws configure region or us-east-1)
   --force                         Allow non-read-only SQL
   -h, --help                      Show this help
 
@@ -42,6 +42,22 @@ is_likely_read_only_sql() {
   fi
 
   return 0
+}
+
+resolve_region() {
+  if [[ -n "${AWS_REGION:-}" ]]; then
+    printf '%s\n' "$AWS_REGION"
+    return 0
+  fi
+
+  local configured
+  configured="$(aws configure get region 2>/dev/null || true)"
+  if [[ -n "$configured" ]]; then
+    printf '%s\n' "$configured"
+    return 0
+  fi
+
+  printf '%s\n' "us-east-1"
 }
 
 discover_bastion_instance() {
@@ -78,7 +94,7 @@ discover_bastion_instance() {
 
 sql_arg=""
 sql_file=""
-region="${AWS_REGION:-us-west-2}"
+region="$(resolve_region)"
 rds_instance="${RDS_INSTANCE_ID:-}"
 mysql_host="${MYSQL_HOST:-}"
 mysql_port="${MYSQL_PORT:-3306}"

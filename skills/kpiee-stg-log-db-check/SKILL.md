@@ -1,142 +1,84 @@
 ---
 name: kpiee-stg-log-db-check
-description: Perform generic investigation for kpiee STG by collecting evidence from ECS Exec, Rails/DB queries, bastion-routed direct MySQL, and CloudWatch Logs Insights. Use when users ask to verify behavior in STG for any feature, troubleshoot workspace-specific issues, confirm data existence/timestamps, or correlate DB records with runtime logs.
+description: Investigate STG behavior with generic AWS tooling (CloudWatch Logs, ECS Exec, DB checks) and use kpiee-specific connection targets from references.
 ---
 
-# Kpiee STG Log Db Check
+# KPIEE STG Investigation Toolkit
 
 ## Overview
 
-Investigate STG behavior with live evidence. Use a fixed workflow to gather reproducible outputs from ECS, DB, and CloudWatch, then summarize with explicit UTC/JST timestamps.
+This skill is organized into:
 
-## Workflow
+1. Generic tools in `scripts/` for ECS, logs, and DB investigation.
+2. kpiee-specific connection targets in `references/`.
 
-1. Run local preflight checks.
-2. Identify target ECS cluster/service/task/container.
-3. Run arbitrary Ruby scripts in ECS via `rails runner`.
-4. (Optional) Discover AWS network route for bastion-routed DB access.
-5. (Optional) Run direct `mysql` query from bastion via SSM.
-6. Query CloudWatch logs for the same time window.
-7. Correlate DB and logs and report evidence.
+Use this separation to keep execution logic reusable while maintaining concrete environment mapping for kpiee.
+
+## Structure
+
+- `scripts/`: reusable investigation tools (no kpiee-specific hardcoded target names)
+- `references/kpiee-stg-reference.md`: kpiee STG ECS/log/DB target mapping collected from related repos
+
+## Standard Workflow
+
+1. Run preflight.
+2. Pick target cluster/service/container/log-group/DB route from `references/kpiee-stg-reference.md`.
+3. Execute investigation via generic scripts.
+4. Correlate ECS output, DB output, and log output by UTC timestamp.
+5. Report evidence and gaps.
 
 ## Step 1: Preflight
-
-Run:
 
 ```bash
 scripts/preflight.sh
 ```
 
 Checks:
-- Required commands: `aws`, `gh`, `jq`, `session-manager-plugin`
-- AWS authentication (`aws sts get-caller-identity`)
-- Region (`AWS_REGION` or default `us-west-2`)
+- required commands (`aws`, `jq`, `session-manager-plugin`)
+- AWS auth (`aws sts get-caller-identity`)
+- effective region (`AWS_REGION` -> aws config -> fallback)
 
-## Step 2: Identify ECS Target
+## Step 2: Select Targets from Reference
 
-List clusters/services/tasks and choose the target service for the issue domain.
-
-Examples:
+Open:
 
 ```bash
-aws ecs list-clusters --region us-west-2
-aws ecs list-services --region us-west-2 --cluster kpiee-stg
-aws ecs list-tasks --region us-west-2 --cluster kpiee-stg --service-name <service-name> --desired-status RUNNING
+cat references/kpiee-stg-reference.md
 ```
 
-For general Rails-side investigation, `kpiee-stg-ecs-exec` + container `kpiee-stg-rails` is usually the safest entry point.
+Pick concrete values:
+- ECS cluster / service / container
+- CloudWatch log group
+- SSM parameter namespace / DB host route
 
-## Step 3: Run Arbitrary Ruby Scripts in ECS
+## Step 3: ECS Exec + Rails Runner
 
-Use helper:
+Run arbitrary local Ruby script in ECS:
 
 ```bash
+ECS_CLUSTER=<cluster> ECS_CONTAINER=<container> \
 scripts/run_ruby_script_in_ecs.sh <task_id> <local_script.rb> [runner_arg ...]
 ```
-
-Defaults (override via env):
-- `ECS_CLUSTER=kpiee-stg`
-- `ECS_CONTAINER=kpiee-stg-rails`
-- `AWS_REGION=us-west-2`
 
 Example:
 
 ```bash
-scripts/run_ruby_script_in_ecs.sh e2d82fcda8bd45e2a5e4bdab1cb7c358 \
+ECS_CLUSTER=kpiee-stg ECS_CONTAINER=dx-kpiee-stg-rails \
+scripts/run_ruby_script_in_ecs.sh \
+  <task_id> \
   scripts/check_workspace_data.rb \
   394 2026-03-04T15:20:52Z messages,notifications,push_deliveries
 ```
 
-The helper uploads local `.rb` content (base64) into the target container, executes it with `bundle exec rails runner`, then returns script logs and propagates runner exit code to local shell.
-
-## Ruby Script Authoring Tips
-
-### Recommended structure
-
-- Parse arguments explicitly from `ARGV`.
-- Normalize time inputs to UTC (`Time.parse(...).utc`).
-- Output structured JSON (`JSON.pretty_generate`) instead of free text.
-- Wrap risky blocks with `begin/rescue` and include actionable error context.
-- Limit row output (`limit`) and include aggregate counts.
-
-### DB access patterns
-
-- For workspace/account DB: use `AccountRecord.connect(account_id: workspace_id) do ... end`.
-- For shared DB: query `PrimaryBase`-backed models directly.
-- Before raw SQL against optional tables, guard with `connection.data_source_exists?`.
-
-### Safety guardrails (important)
-
-- Keep scripts read-only (`SELECT` only).
-- Do not call `save`, `update`, `destroy`, `delete_all`, migration/rake mutation tasks.
-- Do not print secrets/token full values in output.
-- If no data exists in the target window, report that explicitly.
-
-### Minimal template
-
-```ruby
-require "json"
-require "time"
-
-workspace_id = Integer(ARGV.fetch(0))
-issue_opened_at = ARGV[1] ? Time.parse(ARGV[1]).utc : nil
-
-out = { workspace_id: workspace_id, issue_opened_at_utc: issue_opened_at&.iso8601, errors: [] }
-
-begin
-  AccountRecord.connect(account_id: workspace_id) do
-    out[:account_db] = AccountRecord.connection.current_database
-    out[:latest_message_created_at] = Message.maximum(:created_at)&.utc&.iso8601
-  end
-rescue => e
-  out[:errors] << { scope: "account", error: "#{e.class}: #{e.message}" }
-end
-
-puts JSON.pretty_generate(out)
-```
-
-## Step 4: Discover Bastion-to-DB Route (Optional)
-
-When DB is private and direct local access is blocked, inspect route candidates first.
+## Step 4: DB Route Discovery (Optional)
 
 ```bash
-scripts/discover_db_route.sh <rds_instance_identifier>
+scripts/discover_db_route.sh <rds_instance_identifier> [region]
 ```
 
-Example:
+Use when DB is private and bastion route must be identified first.
 
-```bash
-scripts/discover_db_route.sh kpiee-stg-2024-09-04
-```
-
-Outputs include:
-- RDS endpoint/port/public flag/VPC/subnets
-- RDS SG inbound rules for TCP 3306
-- Online SSM-managed EC2 instances (bastion candidates)
-
-## Step 5: Run Direct MySQL Query via Bastion (Optional)
-
-Use SSM RunCommand on a bastion EC2 where `mysql` is installed.
+## Step 5: Direct MySQL Query via Bastion (Optional)
 
 ```bash
 scripts/mysql_query_via_bastion_ssm.sh \
@@ -145,56 +87,44 @@ scripts/mysql_query_via_bastion_ssm.sh \
   --sql 'SELECT NOW()'
 ```
 
-Or with SQL file:
+Notes:
+- read-only SQL is enforced by default
+- use `--force` only when intentionally running non-read-only statements
 
-```bash
-scripts/mysql_query_via_bastion_ssm.sh \
-  --rds-instance <db_instance_id> \
-  --database <db_name> \
-  --sql-file ./query.sql
-```
-
-Useful options:
-- `--bastion-instance <ec2_instance_id>`: force specific bastion
-- `--host <db_endpoint>` / `--port 3306`: bypass RDS identifier resolution
-- `--user <db_user>`: pass explicit MySQL user
-- `--defaults-file <path_on_bastion>`: use bastion-side client credentials
-- `--force`: allow non-read-only SQL (default blocks write-like SQL)
-
-Defaults (env fallback):
-- `AWS_REGION=us-west-2`
-- `RDS_INSTANCE_ID`, `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_DATABASE`, `BASTION_INSTANCE_ID`, `MYSQL_DEFAULTS_FILE`
-
-## Step 6: Query CloudWatch Logs
-
-Run generic Logs Insights query:
+## Step 6: CloudWatch Logs Insights
 
 ```bash
 scripts/cloudwatch_logs_query.sh \
-  /ecs/kpiee-stg \
-  2026-03-05T00:00:00Z \
-  2026-03-05T01:00:00Z \
-  'fields @timestamp, @logStream, @message | filter @message like /394/ | sort @timestamp asc | limit 100'
+  <log_group> \
+  <start_utc_iso8601> \
+  <end_utc_iso8601> \
+  'fields @timestamp, @logStream, @message | sort @timestamp asc | limit 100'
 ```
 
-For delivery-daemon domains, switch log group explicitly (example: `/ecs/kpiee-stg-delivery-daemons`).
-
-## Step 7: Reporting Format
+## Reporting Contract
 
 Always report:
-- Target workspace and time window (UTC/JST)
-- ECS target used (cluster/service/task/container)
-- Account DB name and key table counts/latest timestamps
-- If bastion-direct query was used: RDS instance/endpoint + bastion instance + executed SQL intent
-- CloudWatch log group and concrete matched lines (stream + timestamp)
-- Whether evidence exists after issue timestamp
-- Gaps/limitations (no records in window, missing log stream, permission limits)
+
+- investigation target (workspace/feature) and UTC time window
+- selected ECS cluster/service/container/task
+- selected DB route (RDS/bastion/SQL intent) when DB query is used
+- selected log group and matched lines (timestamp + stream)
+- evidence after issue timestamp (`found` / `not found`)
+- gaps and limitations (permission, missing streams, no rows in window, etc.)
+
+## Guardrails
+
+- keep scripts and SQL read-only by default
+- avoid secret/token dumps in outputs
+- include exact timestamps in UTC in every evidence block
+- do not treat assumptions as facts; cite reference source file when naming targets
 
 ## Resources
 
-- `scripts/preflight.sh`: local prerequisite checks
-- `scripts/run_ruby_script_in_ecs.sh`: execute arbitrary local Ruby scripts in ECS
-- `scripts/check_workspace_data.rb`: generic workspace/table probe script
-- `scripts/discover_db_route.sh`: inspect private DB connectivity route and bastion candidates
-- `scripts/mysql_query_via_bastion_ssm.sh`: run SQL on private DB through bastion (SSM)
-- `scripts/cloudwatch_logs_query.sh`: generic CloudWatch Logs Insights runner
+- `scripts/preflight.sh`
+- `scripts/run_ruby_script_in_ecs.sh`
+- `scripts/check_workspace_data.rb`
+- `scripts/discover_db_route.sh`
+- `scripts/mysql_query_via_bastion_ssm.sh`
+- `scripts/cloudwatch_logs_query.sh`
+- `references/kpiee-stg-reference.md`

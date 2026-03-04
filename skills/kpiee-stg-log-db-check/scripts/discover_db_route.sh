@@ -7,7 +7,24 @@ if [[ "$#" -lt 1 || "$#" -gt 2 ]]; then
 fi
 
 RDS_INSTANCE_ID="$1"
-REGION="${2:-${AWS_REGION:-us-west-2}}"
+
+resolve_region() {
+  if [[ -n "${AWS_REGION:-}" ]]; then
+    printf '%s\n' "$AWS_REGION"
+    return 0
+  fi
+
+  local configured
+  configured="$(aws configure get region 2>/dev/null || true)"
+  if [[ -n "$configured" ]]; then
+    printf '%s\n' "$configured"
+    return 0
+  fi
+
+  printf '%s\n' "us-east-1"
+}
+
+REGION="${2:-$(resolve_region)}"
 
 for c in aws jq; do
   if ! command -v "$c" >/dev/null 2>&1; then
