@@ -1,0 +1,4 @@
+interface:
+  display_name: "KPiee STG Data/Log Check"
+  short_description: "Investigate STG ECS, DB, bastion MySQL, and CloudWatch evidence."
+  default_prompt: "Use $kpiee-stg-log-db-check to investigate a STG issue with ECS Exec, read-only DB checks, bastion-routed direct MySQL, and CloudWatch Logs Insights."
