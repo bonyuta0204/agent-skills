@@ -101,6 +101,58 @@ scripts/cloudwatch_logs_query.sh \
   'fields @timestamp, @logStream, @message | sort @timestamp asc | limit 100'
 ```
 
+## Step 7: Snowflake Investigation with `snow` CLI (Optional)
+
+Use this when the issue domain includes report/tabulate/sfonline or Snowflake query latency.
+
+See concrete environment mapping in:
+
+```bash
+cat references/kpiee-stg-reference.md
+```
+
+Minimal flow:
+
+```bash
+# 1) Verify connection profile
+snow connection list
+
+# 2) Check available schemas for target DB (example: STG)
+snow sql -c kpiee -q "SHOW SCHEMAS IN DATABASE DX_KPIEE_STG;"
+
+# 3) Inspect account schema tables (example: account_id=172 -> STG_AC_0172)
+snow sql -c kpiee -q "USE SCHEMA DX_KPIEE_STG.STG_AC_0172; SHOW TABLES LIKE 'REPORT_%';"
+
+# 4) Get result in JSON for correlation with app logs
+snow sql -c kpiee -q "SELECT * FROM DX_KPIEE_STG.STG_AC_0172.REPORT_... LIMIT 20;" --format json
+```
+
+Performance history (choose based on freshness):
+
+```bash
+# near-real-time
+snow sql -c kpiee -q "
+SELECT query_id, total_elapsed_time, compilation_time, execution_time
+FROM TABLE(information_schema.query_history(
+  dateadd('hours', -24, current_timestamp()),
+  current_timestamp(),
+  result_limit => 100
+))
+WHERE schema_name = 'STG_AC_0172'
+ORDER BY total_elapsed_time DESC;
+"
+
+# long-term (latency up to ~45 min)
+snow sql -c kpiee -q "
+SELECT query_id, total_elapsed_time, rows_produced, bytes_scanned
+FROM snowflake.account_usage.query_history
+WHERE schema_name = 'STG_AC_0172'
+  AND start_time >= DATEADD(day, -3, CURRENT_TIMESTAMP())
+ORDER BY total_elapsed_time DESC
+LIMIT 30;
+"
+```
+
 ## Reporting Contract
 
 Always report:
@@ -109,6 +161,7 @@ Always report:
 - selected ECS cluster/service/container/task
 - selected DB route (RDS/bastion/SQL intent) when DB query is used
 - selected log group and matched lines (timestamp + stream)
+- if Snowflake was used: connection profile, DB/schema, and query history source (`information_schema` or `account_usage`)
 - evidence after issue timestamp (`found` / `not found`)
 - gaps and limitations (permission, missing streams, no rows in window, etc.)
 

@@ -111,6 +111,52 @@ Source repo: `/Users/yuta.nakamura/workspace/github.com/f-scratch/atlas-core`
   - `.ansible/config/database.yml.j2`
   - `CLAUDE.md`
 
+## Snowflake (`snow` CLI) Reference
+
+### dx-kpiee (CLI query investigation baseline)
+
+Source repo: `/Users/yuta.nakamura/workspace/github.com/f-scratch/dx-kpiee`
+
+- Connection file:
+  - `~/.snowflake/connections.toml` (example profile name: `kpiee`)
+- Common commands:
+  - `snow sql -c kpiee -q "SHOW SCHEMAS IN DATABASE DX_KPIEE_DEV;"`
+  - `snow sql -c kpiee -q "USE SCHEMA DX_KPIEE_DEV.DEV_AC_0001; SHOW TABLES LIKE 'REPORT_%';"`
+  - `snow sql -c kpiee -q "SELECT * FROM ..." --format json`
+- Query history patterns:
+  - near-real-time: `TABLE(information_schema.query_history(...))`
+  - long-term analysis: `snowflake.account_usage.query_history`
+- Environment DB/schema naming:
+  - `DEV -> DX_KPIEE_DEV -> DEV_AC_%04d`
+  - `IT -> DX_KPIEE_IT -> IT_AC_%04d`
+  - `STG01 -> DX_KPIEE_STG01 -> STG01_AC_%04d`
+  - `STG02 -> DX_KPIEE_STG02 -> STG02_AC_%04d`
+  - `STG -> DX_KPIEE_STG -> STG_AC_%04d`
+  - `PRD -> DX_KPIEE_PRD -> PRD_AC_%04d`
+- Key files:
+  - `CLAUDE.md` (Snowflake Query Investigation section)
+  - `backend/go/.env.local.sample` (Snowflake env var names)
+
+### atlas-kpiee (runtime connection hints)
+
+Source repo: `/Users/yuta.nakamura/workspace/github.com/f-scratch/atlas-kpiee`
+
+- STG Rails task hints:
+  - `SETTINGS__SNOWFLAKE__DB_NAME=DX_KPIEE_STG`
+  - `SETTINGS__SNOWFLAKE__WAREHOUSE=SHARE_XS`
+  - account/role/user/private-key are injected via SSM secrets
+- STG sfonline worker hints:
+  - container: `atlas-core-stg-sfonline`
+  - log group: `/ecs/atlas-core-stg-sfonline`
+  - env/secrets include `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, `SNOWFLAKE_ROLE`, `SNOWFLAKE_PRIVATE_KEY_PEM`
+- Operational behavior docs:
+  - sfonline uses Redis queue `snowflake_request_id`, executes Snowflake asynchronously, and publishes completion via AnyCable channel
+- Key files:
+  - `backend/deploy/taskdef/atlas-core-stg-rails.json`
+  - `backend/deploy/taskdef/atlas-core-stg-sfonline.json`
+  - `frontend/llms/sfonline.md`
+  - `frontend/llms/use_sfonline.md`
+
 ## Refresh Procedure
 
 1. Resolve repo paths with `ghq`.
