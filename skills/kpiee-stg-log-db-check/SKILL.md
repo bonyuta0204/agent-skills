@@ -101,6 +101,34 @@ scripts/cloudwatch_logs_query.sh \
   'fields @timestamp, @logStream, @message | sort @timestamp asc | limit 100'
 ```
 
+Prefer exact-match style filters in Logs Insights to avoid partial ID hits (`76` matching `760`, etc.).
+
+Example (JSON log fields, exact account/report targeting):
+
+```bash
+scripts/cloudwatch_logs_query.sh \
+  /ecs/dx-kpiee-stg-go \
+  2026-03-04T00:00:00Z \
+  2026-03-05T00:00:00Z \
+  'fields @timestamp, @logStream, @message, account_id, report_id, severity \
+   | filter account_id = 420 and report_id in [76, 77] \
+   | sort @timestamp asc \
+   | limit 200'
+```
+
+Fallback when structured fields are unavailable:
+
+```bash
+scripts/cloudwatch_logs_query.sh \
+  /ecs/dx-kpiee-stg-go \
+  2026-03-04T00:00:00Z \
+  2026-03-05T00:00:00Z \
+  'fields @timestamp, @logStream, @message \
+   | filter @message like /\"account_id\":420/ and @message like /\"report_id\":(76|77)([^0-9]|$)/ \
+   | sort @timestamp asc \
+   | limit 200'
+```
+
 ## Step 7: Snowflake Investigation with `snow` CLI (Optional)
 
 Use this when the issue domain includes report/tabulate/sfonline or Snowflake query latency.

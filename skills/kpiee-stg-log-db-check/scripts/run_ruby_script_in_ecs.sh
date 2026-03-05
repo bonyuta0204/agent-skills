@@ -73,17 +73,28 @@ exec_in_ecs() {
 }
 
 run_cmd="set -euo pipefail; printf %s ${payload_esc} | base64 -d > ${remote_rb}; set +e; bundle exec rails runner ${remote_rb} --${runner_args_esc} > ${remote_log} 2>&1; rc=\$?; set -e; printf %s \"\$rc\" > ${remote_code}"
-show_cmd="set -euo pipefail; cat ${remote_log} 2>/dev/null || true; rc=\$(cat ${remote_code} 2>/dev/null || echo 1); rm -f ${remote_rb} ${remote_log} ${remote_code}; echo __RUNNER_EXIT_CODE__: \$rc"
+fetch_cmd="set -euo pipefail; rc=\$(cat ${remote_code} 2>/dev/null || echo 255); echo __RUNNER_EXIT_CODE__:\${rc}; cat ${remote_log} 2>/dev/null || true"
+cleanup_cmd="set -euo pipefail; rm -f ${remote_rb} ${remote_log} ${remote_code}"
 
 exec_in_ecs "$run_cmd" >/dev/null
-result="$(exec_in_ecs "$show_cmd" 2>&1 || true)"
+result="$(exec_in_ecs "$fetch_cmd" 2>&1 || true)"
 
 # Print logs without marker line.
-echo "$result" | sed '/__RUNNER_EXIT_CODE__:/d'
+echo "$result" | tr -d '\r' | sed '/__RUNNER_EXIT_CODE__:/d'
 
-code="$(echo "$result" | awk '/__RUNNER_EXIT_CODE__:/ {print $2}' | tail -n1)"
+code="$(echo "$result" | tr -d '\r' | sed -n 's/.*__RUNNER_EXIT_CODE__:\([0-9][0-9]*\).*/\1/p' | tail -n1)"
+if [[ -z "${code:-}" ]]; then
+  # Session EOF などで marker が欠落した場合は code だけ再取得する。
+  recovery_result="$(exec_in_ecs "set -euo pipefail; rc=\$(cat ${remote_code} 2>/dev/null || echo 255); echo __RUNNER_EXIT_CODE__:\${rc}" 2>&1 || true)"
+  code="$(echo "$recovery_result" | tr -d '\r' | sed -n 's/.*__RUNNER_EXIT_CODE__:\([0-9][0-9]*\).*/\1/p' | tail -n1)"
+fi
+
+exec_in_ecs "$cleanup_cmd" >/dev/null 2>&1 || true
+
 if [[ -z "${code:-}" ]]; then
   echo "failed to parse runner exit code" >&2
+  echo "fetch result:" >&2
+  echo "$result" >&2
   exit 1
 fi
 
