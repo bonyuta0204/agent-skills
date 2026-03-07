@@ -1,0 +1,4 @@
+interface:
+  display_name: "KPiee STG Data/Log Check"
+  short_description: "Investigate STG issues with logs, ECS, DB, and Snowflake tools as needed."
+  default_prompt: "Use $kpiee-stg-log-db-check as a toolkit for STG investigation. Choose only the necessary tools among CloudWatch Logs Insights, ECS Exec, DB route checks, bastion-routed MySQL, and Snowflake investigation."
