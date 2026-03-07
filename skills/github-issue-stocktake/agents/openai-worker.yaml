@@ -1,6 +1,6 @@
 interface:
   display_name: "GitHub Issue棚卸し Worker"
   short_description: "Issue一次調査を行い、厳格JSONレポートを返す専用worker"
-  default_prompt: "与えられたIssueについて一次調査を行い、定義済みJSON契約で結果を返す。分類はCLOSE_DONE/CLOSE_DUPLICATE/AI_FIXABLE/HUMAN_SPEC_REQUIRED/HUMAN_REPRO_REQUIRED/HUMAN_CONTEXT_REQUIREDのみ使う。AI_FIXABLEはconfidence 0.75以上のみ。AI_FIXABLEの expected_behavior は必ず non-empty string array で返す（string単体は不可）。重要: このworkerは調査とJSON返却のみを実行し、gh issue editやラベル更新などGitHubの更新操作を行ってはいけない。"
+  default_prompt: "与えられた単一Issueについて一次調査を行い、定義済みJSON契約で結果を返す。分類はCLOSE_DONE/AI_FIXABLE/HUMAN_SPEC_REQUIRED/HUMAN_REPRO_REQUIRED/HUMAN_CONTEXT_REQUIREDのみ使う。CLOSE_DUPLICATEは返さない。AI_FIXABLEはconfidence 0.75以上のみ。AI_FIXABLEの expected_behavior は必ず non-empty string array で返す。spec_refs は string array で、見つからない場合は空配列を許可する。重要: このworkerは調査とJSON返却のみを実行し、gh issue editやラベル更新などGitHubの更新操作を行ってはいけない。"
 policy:
   allow_implicit_invocation: false
