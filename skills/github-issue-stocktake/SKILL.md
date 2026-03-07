@@ -88,6 +88,28 @@ description: GitHub Issueの棚卸し・triageをPMとして進めるスキル�
 
 worker JSONの厳格契約、PM正規化後に使う `AI_STOCKTAKE` block format、validation rules は [references/worker-contract.md](references/worker-contract.md) を参照。
 
+## Human Next Action Model
+
+`HUMAN_*` は「なぜ人間判断が必要か」の分類。  
+別に、**単一責任者が次に何をするか** を `human_next_action_type` で表す。
+
+必須ルール:
+
+- `human_action_owner` は単一の人または役割を1つだけ書く
+- `human_next_action_type` は次の5種から1つだけ選ぶ
+- `human_action_items` はその責任者に依頼する具体タスクを書く
+
+`human_next_action_type`:
+
+- `ANSWER_SPEC_QUESTION`: 仕様・期待挙動を明示する
+- `PROVIDE_REPRO_STEPS`: 再現条件、入力値、環境差分を補う
+- `PROVIDE_BUSINESS_CONTEXT`: 優先度、顧客影響、運用背景を補う
+- `MAKE_SCOPE_DECISION`: どこまで直すか、何を採用するかを決める
+- `ROUTE_TO_OWNER`: 正しい責任者や窓口を確定する
+
+`HUMAN_*` と `human_next_action_type` は1対1で固定しない。  
+例: `HUMAN_SPEC_REQUIRED` でも、実際に必要な次アクションが `MAKE_SCOPE_DECISION` のことはある。
+
 ## State File
 
 並列キューを安全に再開できるよう、PMは状態をファイルへ永続化する。
@@ -177,6 +199,7 @@ ${TMPDIR:-/tmp}/github-issue-stocktake-<repo-slug-safe>.json
 - `scripts/render_stocktake_block_from_json.sh` で block を生成する
 - `scripts/upsert_ai_stocktake_block.sh` で本文に反映する
 - 分類ラベル6種を一度除去してから1つだけ付与する
+- `HUMAN_*` で単一責任者が明確なときは、その owner を assignee として反映するか検討する
 - 本文更新では `AI_STOCKTAKE` block の追加/置換以外を変更しない
 - 適用成功後に `processed_summaries` と Issue状態を state file へ書き戻す
 

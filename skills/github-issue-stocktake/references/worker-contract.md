@@ -58,7 +58,7 @@
 追加必須:
 
 - `AI_FIXABLE`: `suspected_root_cause`, `reproduction_steps`, `expected_behavior`, `affected_files`, `test_plan`
-- `HUMAN_*`: `human_action_owner`, `human_action_items`
+- `HUMAN_*`: `human_action_owner`, `human_next_action_type`, `human_action_items`
 
 `AI_FIXABLE` の型制約:
 
@@ -66,6 +66,15 @@
 - `expected_behavior`: non-empty string array
 - `affected_files`: non-empty string array
 - `test_plan`: non-empty string array
+
+`HUMAN_*` の型制約:
+
+- `human_action_owner`: non-empty string
+- `human_next_action_type`: one of `ANSWER_SPEC_QUESTION`, `PROVIDE_REPRO_STEPS`, `PROVIDE_BUSINESS_CONTEXT`, `MAKE_SCOPE_DECISION`, `ROUTE_TO_OWNER`
+- `human_action_items`: non-empty string array
+
+`human_action_owner` は単一の人または役割を1つだけ書く。  
+`human_next_action_type` は「次にその責任者が何をするか」を表し、Issue分類そのものではない。
 
 ## Validation Rules
 
@@ -107,6 +116,7 @@ PM が duplicate 判定や補正を済ませた **normalized JSON** から block
 
 ### 人間アクション（`HUMAN_*` のとき）
 - 依頼先: ...
+- 次アクション種別: `ANSWER_SPEC_QUESTION`
 - 確認事項:
   - ...
 

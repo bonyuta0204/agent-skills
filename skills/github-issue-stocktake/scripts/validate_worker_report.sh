@@ -68,6 +68,12 @@ errors="$(
       $v == "HUMAN_SPEC_REQUIRED" or
       $v == "HUMAN_REPRO_REQUIRED" or
       $v == "HUMAN_CONTEXT_REQUIRED";
+    def valid_human_next_action_type($v):
+      $v == "ANSWER_SPEC_QUESTION" or
+      $v == "PROVIDE_REPRO_STEPS" or
+      $v == "PROVIDE_BUSINESS_CONTEXT" or
+      $v == "MAKE_SCOPE_DECISION" or
+      $v == "ROUTE_TO_OWNER";
     def issue_number_ok($r):
       (($r.issue_number | type) == "number") or is_nonempty_string($r.issue_number);
     def string_array($v):
@@ -92,6 +98,7 @@ errors="$(
       is_nonempty_string_array($r.test_plan);
     def human_ok($r):
       is_nonempty_string($r.human_action_owner) and
+      valid_human_next_action_type($r.human_next_action_type) and
       is_nonempty_string_array($r.human_action_items);
     def check_result($idx; $r; $threshold):
       if (base_ok($r) | not) then
