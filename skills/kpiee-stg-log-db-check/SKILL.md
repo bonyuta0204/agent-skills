@@ -1,11 +1,17 @@
 ---
 name: kpiee-stg-log-db-check
-description: Investigate kpiee STG with reusable AWS/Snowflake tools and kpiee-specific target references. Choose only the tools needed for the case.
+description: Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with reusable AWS/Snowflake tools and target references. Choose only the tools needed for the case.
 ---
 
-# KPIEE STG Investigation Toolkit
+# KPIEE Non-PRD Investigation Toolkit
 
 This skill is a toolkit, not a fixed workflow.
+Its live environment scope is:
+
+- `it`
+- `stg`
+- `stg01`
+- `stg02`
 
 Do not force a sequence like ECS Exec -> DB -> logs.
 Pick only the tools that match the signal you already have:
@@ -18,12 +24,13 @@ Pick only the tools that match the signal you already have:
 ## Structure
 
 - `scripts/`: reusable investigation tools without kpiee-specific defaults
-- `references/kpiee-stg-reference.md`: kpiee STG target mapping and repo hints
+- `references/kpiee-stg-reference.md`: kpiee non-production target mapping and repo hints
 
 ## Operating Rules
 
 - Always set `AWS_REGION` explicitly for the current investigation unless your local AWS config is already correct.
-- For kpiee STG, start from `us-west-2` unless the reference says otherwise.
+- For kpiee non-production, start from `us-west-2` unless the reference says otherwise.
+- Pick the target env first: `it`, `stg`, `stg01`, or `stg02`.
 - Choose the minimum toolset needed for the question at hand.
 - Treat reference data as hints. Re-confirm live targets when the choice matters.
 - Keep everything read-only by default.
