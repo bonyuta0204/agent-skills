@@ -23,6 +23,11 @@ resolve_region() {
     return 0
   fi
 
+  if ! command -v aws >/dev/null 2>&1; then
+    echo "aws command not found and AWS_REGION is not set" >&2
+    exit 1
+  fi
+
   local configured
   configured="$(aws configure get region 2>/dev/null || true)"
   if [[ -n "$configured" ]]; then
@@ -30,7 +35,8 @@ resolve_region() {
     return 0
   fi
 
-  printf '%s\n' "us-east-1"
+  echo "AWS region is not set. Export AWS_REGION or configure aws region." >&2
+  exit 1
 }
 
 REGION="$(resolve_region)"
@@ -42,10 +48,12 @@ if [[ -z "$CLUSTER" || -z "$CONTAINER" ]]; then
   exit 1
 fi
 
-if ! command -v aws >/dev/null 2>&1; then
-  echo "aws command not found" >&2
-  exit 1
-fi
+for c in aws session-manager-plugin; do
+  if ! command -v "$c" >/dev/null 2>&1; then
+    echo "command not found: $c" >&2
+    exit 1
+  fi
+done
 
 payload="$(base64 < "$LOCAL_SCRIPT" | tr -d '\n')"
 remote_base="codex_runner_$(date +%s)_$$"

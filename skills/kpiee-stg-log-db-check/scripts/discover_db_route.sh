@@ -14,6 +14,11 @@ resolve_region() {
     return 0
   fi
 
+  if ! command -v aws >/dev/null 2>&1; then
+    echo "aws command not found and AWS_REGION is not set" >&2
+    exit 1
+  fi
+
   local configured
   configured="$(aws configure get region 2>/dev/null || true)"
   if [[ -n "$configured" ]]; then
@@ -21,7 +26,8 @@ resolve_region() {
     return 0
   fi
 
-  printf '%s\n' "us-east-1"
+  echo "AWS region is not set. Export AWS_REGION or configure aws region." >&2
+  exit 1
 }
 
 REGION="${2:-$(resolve_region)}"
@@ -101,7 +107,7 @@ done < <(
   aws ssm describe-instance-information \
     --region "$REGION" \
     --output json \
-    | jq -r '.InstanceInformationList[] | select(.PingStatus == "Online" and .ResourceType == "EC2") | .InstanceId'
+    | jq -r '.InstanceInformationList[] | select(.PingStatus == "Online" and (.ResourceType | startswith("EC2"))) | .InstanceId'
 )
 
 if [[ "${#instance_ids[@]}" -eq 0 ]]; then

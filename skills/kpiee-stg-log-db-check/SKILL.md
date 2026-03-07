@@ -1,97 +1,80 @@
 ---
 name: kpiee-stg-log-db-check
-description: Investigate STG behavior with generic AWS tooling (CloudWatch Logs, ECS Exec, DB checks) and use kpiee-specific connection targets from references.
+description: Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with reusable AWS/Snowflake tools and target references. Choose only the tools needed for the case.
 ---
 
-# KPIEE STG Investigation Toolkit
+# KPIEE Non-PRD Investigation Toolkit
 
-## Overview
+This skill is a toolkit, not a fixed workflow.
+Its live environment scope is:
 
-This skill is organized into:
+- `it`
+- `stg`
+- `stg01`
+- `stg02`
 
-1. Generic tools in `scripts/` for ECS, logs, and DB investigation.
-2. kpiee-specific connection targets in `references/`.
+Do not force a sequence like ECS Exec -> DB -> logs.
+Pick only the tools that match the signal you already have:
 
-Use this separation to keep execution logic reusable while maintaining concrete environment mapping for kpiee.
+- Logs when you have timestamps, request IDs, job IDs, account IDs, or error strings
+- ECS Exec when you need runtime app state or Rails-side inspection
+- DB checks when you need record presence/absence or routing confirmation
+- Snowflake when the issue domain is report/tabulate/sfonline or query latency
 
 ## Structure
 
-- `scripts/`: reusable investigation tools (no kpiee-specific hardcoded target names)
-- `references/kpiee-stg-reference.md`: kpiee STG ECS/log/DB target mapping collected from related repos
+- `scripts/`: reusable investigation tools without kpiee-specific defaults
+- `references/kpiee-stg-reference.md`: kpiee non-production target mapping and repo hints
 
-## Standard Workflow
+## Operating Rules
 
-1. Run preflight.
-2. Pick target cluster/service/container/log-group/DB route from `references/kpiee-stg-reference.md`.
-3. Execute investigation via generic scripts.
-4. Correlate ECS output, DB output, and log output by UTC timestamp.
-5. Report evidence and gaps.
+- Always set `AWS_REGION` explicitly for the current investigation unless your local AWS config is already correct.
+- For kpiee non-production, start from `us-west-2` unless the reference says otherwise.
+- Pick the target env first: `it`, `stg`, `stg01`, or `stg02`.
+- Choose the minimum toolset needed for the question at hand.
+- Treat reference data as hints. Re-confirm live targets when the choice matters.
+- Keep everything read-only by default.
+- Report evidence with exact UTC timestamps.
 
-## Step 1: Preflight
+## Preflight
+
+Run this before using the toolkit:
 
 ```bash
 scripts/preflight.sh
 ```
 
-Checks:
-- required commands (`aws`, `jq`, `session-manager-plugin`)
-- AWS auth (`aws sts get-caller-identity`)
-- effective region (`AWS_REGION` -> aws config -> fallback)
+What it checks:
 
-## Step 2: Select Targets from Reference
+- required local commands: `aws`, `jq`, `python3`, `session-manager-plugin`
+- optional local command: `snow`
+- AWS auth: `aws sts get-caller-identity`
+- effective region: `AWS_REGION` or AWS config
 
-Open:
+If region resolution fails, set it explicitly:
+
+```bash
+export AWS_REGION=us-west-2
+```
+
+## Target Selection
+
+Open the reference and pick the concrete target only for the tool you need:
 
 ```bash
 cat references/kpiee-stg-reference.md
 ```
 
-Pick concrete values:
-- ECS cluster / service / container
+Typical target types:
+
+- ECS cluster, service, container, task family
 - CloudWatch log group
-- SSM parameter namespace / DB host route
+- RDS instance identifier or DB host route
+- Snowflake DB/schema naming pattern
 
-## Step 3: ECS Exec + Rails Runner
+## Tool: CloudWatch Logs Insights
 
-Run arbitrary local Ruby script in ECS:
-
-```bash
-ECS_CLUSTER=<cluster> ECS_CONTAINER=<container> \
-scripts/run_ruby_script_in_ecs.sh <task_id> <local_script.rb> [runner_arg ...]
-```
-
-Example:
-
-```bash
-ECS_CLUSTER=kpiee-stg ECS_CONTAINER=dx-kpiee-stg-rails \
-scripts/run_ruby_script_in_ecs.sh \
-  <task_id> \
-  scripts/check_workspace_data.rb \
-  394 2026-03-04T15:20:52Z messages,notifications,push_deliveries
-```
-
-## Step 4: DB Route Discovery (Optional)
-
-```bash
-scripts/discover_db_route.sh <rds_instance_identifier> [region]
-```
-
-Use when DB is private and bastion route must be identified first.
-
-## Step 5: Direct MySQL Query via Bastion (Optional)
-
-```bash
-scripts/mysql_query_via_bastion_ssm.sh \
-  --rds-instance <db_instance_id> \
-  --database <db_name> \
-  --sql 'SELECT NOW()'
-```
-
-Notes:
-- read-only SQL is enforced by default
-- use `--force` only when intentionally running non-read-only statements
-
-## Step 6: CloudWatch Logs Insights
+Use this when you already have a time window, identifiers, or an error signature.
 
 ```bash
 scripts/cloudwatch_logs_query.sh \
@@ -101,9 +84,11 @@ scripts/cloudwatch_logs_query.sh \
   'fields @timestamp, @logStream, @message | sort @timestamp asc | limit 100'
 ```
 
-Prefer exact-match style filters in Logs Insights to avoid partial ID hits (`76` matching `760`, etc.).
+Output is JSONL so structured fields are preserved.
 
-Example (JSON log fields, exact account/report targeting):
+Prefer exact-match style filters to avoid partial hits.
+
+Example:
 
 ```bash
 scripts/cloudwatch_logs_query.sh \
@@ -129,7 +114,99 @@ scripts/cloudwatch_logs_query.sh \
    | limit 200'
 ```
 
-## Step 7: Snowflake Investigation with `snow` CLI (Optional)
+## Tool: ECS Task Discovery
+
+Use this when you know the service but not the concrete task ID yet.
+
+```bash
+scripts/list_ecs_tasks.sh <cluster> <service> [region]
+```
+
+Example:
+
+```bash
+scripts/list_ecs_tasks.sh kpiee-stg dx-kpiee-stg
+```
+
+Pick a running task ID from the output, then use ECS Exec if needed.
+
+## Tool: ECS Exec + Rails Runner
+
+Use this when logs alone are not enough and you need runtime inspection.
+
+```bash
+ECS_CLUSTER=<cluster> ECS_CONTAINER=<container> \
+scripts/run_ruby_script_in_ecs.sh <task_id> <local_script.rb> [runner_arg ...]
+```
+
+Example:
+
+```bash
+ECS_CLUSTER=kpiee-stg ECS_CONTAINER=dx-kpiee-stg-rails \
+scripts/run_ruby_script_in_ecs.sh \
+  <task_id> \
+  scripts/check_workspace_data.rb \
+  394 2026-03-04T15:20:52Z messages,notifications,push_deliveries
+```
+
+Assumptions:
+
+- ECS Exec is enabled for the target task
+- the target container has `bash`
+- the target container can run `bundle exec rails runner`
+
+## Tool: DB Route Discovery
+
+Use this when the default DB route fails, or when you need to inspect the network path explicitly.
+
+```bash
+scripts/discover_db_route.sh <rds_instance_identifier> [region]
+```
+
+This is a discovery tool. It shows:
+
+- RDS summary
+- relevant security groups
+- SSM-managed EC2 bastion candidates
+
+In the normal path you should not need this first. The MySQL helper tries the shared non-prod bastion `kpiee-infra-dev` first and only falls back to discovery when that fixed route fails.
+
+## Tool: Direct MySQL Query via Bastion
+
+Use this only when direct DB evidence is necessary.
+
+Default behavior:
+
+- try the shared non-prod bastion `kpiee-infra-dev` first
+- if that route fails, discover another SSM-managed bastion and retry once
+
+Minimal usage:
+
+```bash
+scripts/mysql_query_via_bastion_ssm.sh \
+  --rds-instance <db_instance_id> \
+  --database <db_name> \
+  --sql 'SELECT NOW()'
+```
+
+If you need to force a specific bastion, override it explicitly:
+
+```bash
+scripts/mysql_query_via_bastion_ssm.sh \
+  --rds-instance <db_instance_id> \
+  --database <db_name> \
+  --bastion-instance <instance_id> \
+  --sql 'SELECT NOW()'
+```
+
+Notes:
+
+- as of 2026-03-07, the fixed shared bastion is `kpiee-infra-dev` and SSM execution was verified on that host
+- read-only protection is heuristic, not a formal guarantee
+- `--discover-bastion` is still available when you want to skip the fixed route and inspect the heuristic path first
+- use `--force` only when you intentionally need to bypass the default block
+
+## Tool: Snowflake Investigation
 
 Use this when the issue domain includes report/tabulate/sfonline or Snowflake query latency.
 
@@ -142,70 +219,34 @@ cat references/kpiee-stg-reference.md
 Minimal flow:
 
 ```bash
-# 1) Verify connection profile
 snow connection list
-
-# 2) Check available schemas for target DB (example: STG)
-snow sql -c kpiee -q "SHOW SCHEMAS IN DATABASE DX_KPIEE_STG;"
-
-# 3) Inspect account schema tables (example: account_id=172 -> STG_AC_0172)
-snow sql -c kpiee -q "USE SCHEMA DX_KPIEE_STG.STG_AC_0172; SHOW TABLES LIKE 'REPORT_%';"
-
-# 4) Get result in JSON for correlation with app logs
-snow sql -c kpiee -q "SELECT * FROM DX_KPIEE_STG.STG_AC_0172.REPORT_... LIMIT 20;" --format json
+snow sql -c <profile> -q "SHOW SCHEMAS IN DATABASE DX_KPIEE_STG;"
+snow sql -c <profile> -q "USE SCHEMA DX_KPIEE_STG.STG_AC_0172; SHOW TABLES LIKE 'REPORT_%';"
+snow sql -c <profile> -q "SELECT * FROM DX_KPIEE_STG.STG_AC_0172.REPORT_... LIMIT 20;" --format json
 ```
 
-Performance history (choose based on freshness):
-
-```bash
-# near-real-time
-snow sql -c kpiee -q "
-SELECT query_id, total_elapsed_time, compilation_time, execution_time
-FROM TABLE(information_schema.query_history(
-  dateadd('hours', -24, current_timestamp()),
-  current_timestamp(),
-  result_limit => 100
-))
-WHERE schema_name = 'STG_AC_0172'
-ORDER BY total_elapsed_time DESC;
-"
-
-# long-term (latency up to ~45 min)
-snow sql -c kpiee -q "
-SELECT query_id, total_elapsed_time, rows_produced, bytes_scanned
-FROM snowflake.account_usage.query_history
-WHERE schema_name = 'STG_AC_0172'
-  AND start_time >= DATEADD(day, -3, CURRENT_TIMESTAMP())
-ORDER BY total_elapsed_time DESC
-LIMIT 30;
-"
-```
+Do not assume the profile is always `kpiee`. Confirm the local profile first.
 
 ## Reporting Contract
 
 Always report:
 
-- investigation target (workspace/feature) and UTC time window
-- selected ECS cluster/service/container/task
-- selected DB route (RDS/bastion/SQL intent) when DB query is used
-- selected log group and matched lines (timestamp + stream)
-- if Snowflake was used: connection profile, DB/schema, and query history source (`information_schema` or `account_usage`)
-- evidence after issue timestamp (`found` / `not found`)
-- gaps and limitations (permission, missing streams, no rows in window, etc.)
-
-## Guardrails
-
-- keep scripts and SQL read-only by default
-- avoid secret/token dumps in outputs
-- include exact timestamps in UTC in every evidence block
-- do not treat assumptions as facts; cite reference source file when naming targets
+- investigation target and UTC time window
+- which tools were used and why
+- selected ECS cluster, service, container, and task when ECS was used
+- selected DB route, bastion, DB name, and SQL intent when DB query was used
+- selected log group and matching records when logs were used
+- selected Snowflake profile, DB/schema, and history source when Snowflake was used
+- evidence after the issue timestamp as `found` or `not found`
+- gaps and limitations such as permission issues, missing streams, or empty windows
 
 ## Resources
 
 - `scripts/preflight.sh`
+- `scripts/cloudwatch_logs_query.sh`
+- `scripts/list_ecs_tasks.sh`
 - `scripts/run_ruby_script_in_ecs.sh`
 - `scripts/check_workspace_data.rb`
 - `scripts/discover_db_route.sh`
 - `scripts/mysql_query_via_bastion_ssm.sh`
-- `scripts/cloudwatch_logs_query.sh`
 - `references/kpiee-stg-reference.md`

@@ -1,4 +1,4 @@
 interface:
-  display_name: "KPiee STG Data/Log Check"
-  short_description: "Investigate STG ECS, DB, bastion MySQL, and CloudWatch evidence."
-  default_prompt: "Use $kpiee-stg-log-db-check to investigate a STG issue with ECS Exec, read-only DB checks, bastion-routed direct MySQL, and CloudWatch Logs Insights."
+  display_name: "KPiee Non-PRD Data/Log Check"
+  short_description: "Investigate IT/STG/STG01/STG02 issues with logs, ECS, DB, and Snowflake tools as needed."
+  default_prompt: "Use $kpiee-stg-log-db-check as a toolkit for non-production investigation across it, stg, stg01, and stg02. Choose only the necessary tools among CloudWatch Logs Insights, ECS Exec, DB route checks, bastion-routed MySQL, and Snowflake investigation."

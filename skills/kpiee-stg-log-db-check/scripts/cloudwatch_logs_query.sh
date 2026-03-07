@@ -17,6 +17,11 @@ resolve_region() {
     return 0
   fi
 
+  if ! command -v aws >/dev/null 2>&1; then
+    echo "aws command not found and AWS_REGION is not set" >&2
+    exit 1
+  fi
+
   local configured
   configured="$(aws configure get region 2>/dev/null || true)"
   if [[ -n "$configured" ]]; then
@@ -24,7 +29,8 @@ resolve_region() {
     return 0
   fi
 
-  printf '%s\n' "us-east-1"
+  echo "AWS region is not set. Export AWS_REGION or configure aws region." >&2
+  exit 1
 }
 
 REGION="${5:-$(resolve_region)}"
@@ -62,4 +68,4 @@ if [[ "$STATUS" != "Complete" ]]; then
 fi
 
 aws logs get-query-results --region "$REGION" --query-id "$QID" --output json \
-  | jq -r '.results[] | (map({(.field): .value}) | add) | "[" + (."@timestamp" // "") + "] [" + (."@logStream" // "") + "] " + (."@message" // "")'
+  | jq -c '.results[] | (map({(.field): .value}) | add)'
