@@ -15,7 +15,7 @@ options:
   --database <name>               Database name
   --user <name>                   MySQL user (optional)
   --bastion-instance <instance>   SSM-managed EC2 instance ID
-  --discover-bastion              Heuristically choose a bastion if none is provided
+  --discover-bastion              Force heuristic bastion discovery first
   --defaults-file <path>          MySQL defaults file path on bastion
   --region <region>               AWS region (default: AWS_REGION or aws configure region)
   --force                         Allow non-read-only SQL
@@ -45,6 +45,8 @@ is_likely_read_only_sql() {
   return 0
 }
 
+DEFAULT_BASTION_NAME="${DEFAULT_BASTION_NAME:-kpiee-infra-dev}"
+
 resolve_region() {
   if [[ -n "${AWS_REGION:-}" ]]; then
     printf '%s\n' "$AWS_REGION"
@@ -67,13 +69,45 @@ resolve_region() {
   exit 1
 }
 
+resolve_named_bastion_instance() {
+  local region="$1"
+  local name="$2"
+  local online_ids
+  online_ids="$(aws ssm describe-instance-information \
+    --region "$region" \
+    --output json \
+    | jq -r '.InstanceInformationList[] | select(.PingStatus == "Online" and (.ResourceType | startswith("EC2"))) | .InstanceId')"
+
+  if [[ -z "$online_ids" ]]; then
+    echo "" && return 0
+  fi
+
+  # shellcheck disable=SC2206
+  local ids=( $online_ids )
+  local ec2_json
+  ec2_json="$(aws ec2 describe-instances --region "$region" --instance-ids "${ids[@]}" --output json)"
+
+  echo "$ec2_json" | jq -r --arg name "$name" '
+    [
+      .Reservations[].Instances[]
+      | {
+          id: .InstanceId,
+          state: .State.Name,
+          name: ((.Tags // [] | map(select(.Key == "Name") | .Value) | .[0]) // "")
+        }
+      | select(.state == "running" and .name == $name)
+    ]
+    | .[0].id // ""
+  '
+}
+
 discover_bastion_instance() {
   local region="$1"
   local online_ids
   online_ids="$(aws ssm describe-instance-information \
     --region "$region" \
     --output json \
-    | jq -r '.InstanceInformationList[] | select(.PingStatus == "Online" and .ResourceType == "EC2") | .InstanceId')"
+    | jq -r '.InstanceInformationList[] | select(.PingStatus == "Online" and (.ResourceType | startswith("EC2"))) | .InstanceId')"
 
   if [[ -z "$online_ids" ]]; then
     echo "" && return 0
@@ -99,6 +133,88 @@ discover_bastion_instance() {
   '
 }
 
+run_ssm_mysql_query() {
+  local region="$1"
+  local bastion_instance="$2"
+  local mysql_host="$3"
+  local mysql_port="$4"
+  local mysql_database="$5"
+  local mysql_user="$6"
+  local mysql_defaults_file="$7"
+  local sql_arg="$8"
+
+  local sql_b64 sql_b64_esc host_esc port_esc db_esc mysql_cmd remote_cmd payload command_id invocation_json
+  sql_b64="$(printf '%s' "$sql_arg" | base64 | tr -d '\n')"
+  sql_b64_esc="$(printf '%q' "$sql_b64")"
+  host_esc="$(printf '%q' "$mysql_host")"
+  port_esc="$(printf '%q' "$mysql_port")"
+  db_esc="$(printf '%q' "$mysql_database")"
+
+  mysql_cmd="mysql"
+  if [[ -n "$mysql_defaults_file" ]]; then
+    local defaults_esc
+    defaults_esc="$(printf '%q' "$mysql_defaults_file")"
+    mysql_cmd+=" --defaults-extra-file=${defaults_esc}"
+  fi
+  mysql_cmd+=" --batch --raw"
+  mysql_cmd+=" --host=${host_esc} --port=${port_esc}"
+  if [[ -n "$mysql_user" ]]; then
+    local user_esc
+    user_esc="$(printf '%q' "$mysql_user")"
+    mysql_cmd+=" --user=${user_esc}"
+  fi
+  mysql_cmd+=" ${db_esc}"
+
+  remote_cmd="set -euo pipefail; tmp_sql=\$(mktemp /tmp/codex-mysql-XXXXXX.sql); trap 'rm -f \"\$tmp_sql\"' EXIT; printf %s ${sql_b64_esc} | base64 -d > \"\$tmp_sql\"; ${mysql_cmd} < \"\$tmp_sql\""
+  payload="$(jq -cn --arg cmd "$remote_cmd" '{commands: [$cmd]}')"
+
+  if ! command_id="$(aws ssm send-command \
+    --region "$region" \
+    --instance-ids "$bastion_instance" \
+    --document-name AWS-RunShellScript \
+    --comment "codex mysql query via bastion" \
+    --parameters "$payload" \
+    --query 'Command.CommandId' \
+    --output text 2>&1)"; then
+    jq -cn \
+      --arg bastion "$bastion_instance" \
+      --arg command_id "" \
+      --arg status "SendCommandFailed" \
+      --arg stdout "" \
+      --arg stderr "$command_id" \
+      '{bastion: $bastion, command_id: $command_id, status: $status, stdout: $stdout, stderr: $stderr}'
+    return 0
+  fi
+
+  aws ssm wait command-executed \
+    --region "$region" \
+    --command-id "$command_id" \
+    --instance-id "$bastion_instance" || true
+
+  if ! invocation_json="$(aws ssm get-command-invocation \
+    --region "$region" \
+    --command-id "$command_id" \
+    --instance-id "$bastion_instance" \
+    --output json 2>&1)"; then
+    jq -cn \
+      --arg bastion "$bastion_instance" \
+      --arg command_id "$command_id" \
+      --arg status "GetInvocationFailed" \
+      --arg stdout "" \
+      --arg stderr "$invocation_json" \
+      '{bastion: $bastion, command_id: $command_id, status: $status, stdout: $stdout, stderr: $stderr}'
+    return 0
+  fi
+
+  jq -cn \
+    --arg bastion "$bastion_instance" \
+    --arg command_id "$command_id" \
+    --arg status "$(echo "$invocation_json" | jq -r '.Status')" \
+    --arg stdout "$(echo "$invocation_json" | jq -r '.StandardOutputContent // ""')" \
+    --arg stderr "$(echo "$invocation_json" | jq -r '.StandardErrorContent // ""')" \
+    '{bastion: $bastion, command_id: $command_id, status: $status, stdout: $stdout, stderr: $stderr}'
+}
+
 sql_arg=""
 sql_file=""
 region="$(resolve_region)"
@@ -111,6 +227,7 @@ bastion_instance="${BASTION_INSTANCE_ID:-}"
 mysql_defaults_file="${MYSQL_DEFAULTS_FILE:-}"
 force=0
 discover_bastion=0
+selected_route=""
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -213,12 +330,23 @@ if [[ -z "$mysql_database" ]]; then
   exit 1
 fi
 
-if [[ -z "$bastion_instance" && "$discover_bastion" -eq 1 ]]; then
+if [[ -n "$bastion_instance" ]]; then
+  selected_route="explicit"
+elif [[ "$discover_bastion" -eq 1 ]]; then
   bastion_instance="$(discover_bastion_instance "$region")"
+  selected_route="discovered"
+else
+  bastion_instance="$(resolve_named_bastion_instance "$region" "$DEFAULT_BASTION_NAME")"
+  if [[ -n "$bastion_instance" ]]; then
+    selected_route="default:${DEFAULT_BASTION_NAME}"
+  else
+    bastion_instance="$(discover_bastion_instance "$region")"
+    selected_route="fallback-discovered"
+  fi
 fi
 
 if [[ -z "$bastion_instance" ]]; then
-  echo "Bastion instance is required. Set --bastion-instance or opt in to --discover-bastion." >&2
+  echo "Failed to resolve bastion instance. Set --bastion-instance or use --discover-bastion." >&2
   exit 1
 fi
 
@@ -229,54 +357,44 @@ if [[ "$force" -ne 1 ]]; then
   fi
 fi
 
-sql_b64="$(printf '%s' "$sql_arg" | base64 | tr -d '\n')"
-sql_b64_esc="$(printf '%q' "$sql_b64")"
-host_esc="$(printf '%q' "$mysql_host")"
-port_esc="$(printf '%q' "$mysql_port")"
-db_esc="$(printf '%q' "$mysql_database")"
+result_json="$(run_ssm_mysql_query \
+  "$region" \
+  "$bastion_instance" \
+  "$mysql_host" \
+  "$mysql_port" \
+  "$mysql_database" \
+  "$mysql_user" \
+  "$mysql_defaults_file" \
+  "$sql_arg")"
 
-mysql_cmd="mysql"
-if [[ -n "$mysql_defaults_file" ]]; then
-  defaults_esc="$(printf '%q' "$mysql_defaults_file")"
-  mysql_cmd+=" --defaults-extra-file=${defaults_esc}"
+status="$(echo "$result_json" | jq -r '.status')"
+stdout="$(echo "$result_json" | jq -r '.stdout')"
+stderr="$(echo "$result_json" | jq -r '.stderr')"
+command_id="$(echo "$result_json" | jq -r '.command_id')"
+
+if [[ "$status" != "Success" && "$selected_route" == "default:${DEFAULT_BASTION_NAME}" ]]; then
+  fallback_bastion="$(discover_bastion_instance "$region")"
+  if [[ -n "$fallback_bastion" && "$fallback_bastion" != "$bastion_instance" ]]; then
+    echo "[route] default bastion ${bastion_instance} failed; retrying with discovered bastion ${fallback_bastion}" >&2
+    bastion_instance="$fallback_bastion"
+    selected_route="fallback-discovered"
+    result_json="$(run_ssm_mysql_query \
+      "$region" \
+      "$bastion_instance" \
+      "$mysql_host" \
+      "$mysql_port" \
+      "$mysql_database" \
+      "$mysql_user" \
+      "$mysql_defaults_file" \
+      "$sql_arg")"
+    status="$(echo "$result_json" | jq -r '.status')"
+    stdout="$(echo "$result_json" | jq -r '.stdout')"
+    stderr="$(echo "$result_json" | jq -r '.stderr')"
+    command_id="$(echo "$result_json" | jq -r '.command_id')"
+  fi
 fi
-mysql_cmd+=" --batch --raw"
-mysql_cmd+=" --host=${host_esc} --port=${port_esc}"
-if [[ -n "$mysql_user" ]]; then
-  user_esc="$(printf '%q' "$mysql_user")"
-  mysql_cmd+=" --user=${user_esc}"
-fi
-mysql_cmd+=" ${db_esc}"
 
-remote_cmd="set -euo pipefail; tmp_sql=\$(mktemp /tmp/codex-mysql-XXXXXX.sql); trap 'rm -f \"\$tmp_sql\"' EXIT; printf %s ${sql_b64_esc} | base64 -d > \"\$tmp_sql\"; ${mysql_cmd} < \"\$tmp_sql\""
-
-payload="$(jq -cn --arg cmd "$remote_cmd" '{commands: [$cmd]}')"
-
-command_id="$(aws ssm send-command \
-  --region "$region" \
-  --instance-ids "$bastion_instance" \
-  --document-name AWS-RunShellScript \
-  --comment "codex mysql query via bastion" \
-  --parameters "$payload" \
-  --query 'Command.CommandId' \
-  --output text)"
-
-aws ssm wait command-executed \
-  --region "$region" \
-  --command-id "$command_id" \
-  --instance-id "$bastion_instance" || true
-
-invocation_json="$(aws ssm get-command-invocation \
-  --region "$region" \
-  --command-id "$command_id" \
-  --instance-id "$bastion_instance" \
-  --output json)"
-
-status="$(echo "$invocation_json" | jq -r '.Status')"
-stdout="$(echo "$invocation_json" | jq -r '.StandardOutputContent // ""')"
-stderr="$(echo "$invocation_json" | jq -r '.StandardErrorContent // ""')"
-
-echo "[route] region=${region} bastion=${bastion_instance} host=${mysql_host} port=${mysql_port} db=${mysql_database}" >&2
+echo "[route] type=${selected_route} region=${region} bastion=${bastion_instance} host=${mysql_host} port=${mysql_port} db=${mysql_database}" >&2
 echo "[ssm] command_id=${command_id} status=${status}" >&2
 
 if [[ -n "$stdout" ]]; then

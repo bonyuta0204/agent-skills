@@ -32,6 +32,13 @@ Use generic scripts in `scripts/` for execution, and pick concrete values from h
   - `kpiee-stg`
   - `kpiee-stg01`
   - `kpiee-stg02`
+- Confirmed shared DB bastion on 2026-03-07:
+  - Name: `kpiee-infra-dev`
+  - Instance ID: `i-05cb1b41cda7e3806`
+  - State: `running`
+  - SSM `AWS-RunShellScript` execution: success
+  - Route basis: its security group `sg-0e70ca6d4975dcb89` is allowed on MySQL `3306` by the RDS security groups used in `it`, `stg`, `stg01`, and `stg02`
+- `kpiee-infra-stg` exists but was `stopped` on 2026-03-07 and should not be treated as the default non-prod bastion path.
 - Start every investigation by fixing the target env first.
 - When the target is ambiguous, do not mix `stg` with `stg01` or `stg02`. They are separate live environments.
 

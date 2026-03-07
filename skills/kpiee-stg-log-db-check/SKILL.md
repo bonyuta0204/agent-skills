@@ -157,7 +157,7 @@ Assumptions:
 
 ## Tool: DB Route Discovery
 
-Use this when DB access path is unclear and you need to understand the route before querying.
+Use this when the default DB route fails, or when you need to inspect the network path explicitly.
 
 ```bash
 scripts/discover_db_route.sh <rds_instance_identifier> [region]
@@ -169,13 +169,27 @@ This is a discovery tool. It shows:
 - relevant security groups
 - SSM-managed EC2 bastion candidates
 
-It does not choose the final bastion for you. Confirm the route explicitly before querying.
+In the normal path you should not need this first. The MySQL helper tries the shared non-prod bastion `kpiee-infra-dev` first and only falls back to discovery when that fixed route fails.
 
 ## Tool: Direct MySQL Query via Bastion
 
 Use this only when direct DB evidence is necessary.
 
-Prefer passing `--bastion-instance` explicitly after route discovery:
+Default behavior:
+
+- try the shared non-prod bastion `kpiee-infra-dev` first
+- if that route fails, discover another SSM-managed bastion and retry once
+
+Minimal usage:
+
+```bash
+scripts/mysql_query_via_bastion_ssm.sh \
+  --rds-instance <db_instance_id> \
+  --database <db_name> \
+  --sql 'SELECT NOW()'
+```
+
+If you need to force a specific bastion, override it explicitly:
 
 ```bash
 scripts/mysql_query_via_bastion_ssm.sh \
@@ -185,19 +199,11 @@ scripts/mysql_query_via_bastion_ssm.sh \
   --sql 'SELECT NOW()'
 ```
 
-If you intentionally want heuristic bastion auto-discovery, opt in explicitly:
-
-```bash
-scripts/mysql_query_via_bastion_ssm.sh \
-  --rds-instance <db_instance_id> \
-  --database <db_name> \
-  --discover-bastion \
-  --sql 'SELECT NOW()'
-```
-
 Notes:
 
+- as of 2026-03-07, the fixed shared bastion is `kpiee-infra-dev` and SSM execution was verified on that host
 - read-only protection is heuristic, not a formal guarantee
+- `--discover-bastion` is still available when you want to skip the fixed route and inspect the heuristic path first
 - use `--force` only when you intentionally need to bypass the default block
 
 ## Tool: Snowflake Investigation

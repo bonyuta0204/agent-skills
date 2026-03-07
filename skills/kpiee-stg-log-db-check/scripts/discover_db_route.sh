@@ -107,7 +107,7 @@ done < <(
   aws ssm describe-instance-information \
     --region "$REGION" \
     --output json \
-    | jq -r '.InstanceInformationList[] | select(.PingStatus == "Online" and .ResourceType == "EC2") | .InstanceId'
+    | jq -r '.InstanceInformationList[] | select(.PingStatus == "Online" and (.ResourceType | startswith("EC2"))) | .InstanceId'
 )
 
 if [[ "${#instance_ids[@]}" -eq 0 ]]; then
