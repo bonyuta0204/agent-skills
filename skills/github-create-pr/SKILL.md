@@ -1,6 +1,6 @@
 ---
 name: github-create-pr
-description: Draft and create GitHub pull requests with reviewer-first explanations. Use when asked to create, update, or improve a PR body or PR title, especially when the repository has a PR template or repo-specific rules in AGENTS.md / CLAUDE.md.
+description: GitHub の Pull Request をレビューア向け説明で作成・更新するスキル。PR 本文やタイトルの新規作成・改善・更新を求められたときに使い、AGENTS.md / CLAUDE.md の repo 固有ルールや PR template がある場合はそれを優先する。
 ---
 
 # GitHub Create PR
