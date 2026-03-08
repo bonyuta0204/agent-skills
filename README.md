@@ -69,12 +69,19 @@ make unlink SKILL=create-design-doc
 | Skill | Description |
 | --- | --- |
 | [`create-design-doc`](skills/create-design-doc/SKILL.md) | Create kpiee design docs (basic or detail) in kpiee-designs using repo templates. |
+| [`create-mermaid-diagram`](skills/create-mermaid-diagram/SKILL.md) | Mermaid 図を壊れにくく作成・修正し、render 検証と syntax/style のチェックまで行う。 |
 | [`github-create-pr`](skills/github-create-pr/SKILL.md) | GitHub の Pull Request をレビューア向け説明で作成・更新し、repo 固有の preflight、template、milestone も扱う。 |
 | [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake/triage with worker-based primary investigation, PM-owned duplicate handling, resumable state tracking, and controlled `AI_STOCKTAKE` body/label updates. |
 | [`kpiee-pm-ops`](skills/kpiee-pm-ops/SKILL.md) | PM+Ops orchestrator for kpiee delivery: architecture-aware task decomposition, issue/PR operations, CI/deploy execution, and release reporting via sub-agents. |
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
 | [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with a reusable toolkit for logs, ECS, DB, and Snowflake, using confirmed target references when needed. |
 | [`review-design-doc`](skills/review-design-doc/SKILL.md) | Review kpiee-designs design docs in GitHub pull requests. |
+
+Skill-specific verification example:
+
+```bash
+./skills/create-mermaid-diagram/scripts/check_mermaid.sh --strict path/to/diagram.mmd
+```
 
 ## Add a new skill
 
