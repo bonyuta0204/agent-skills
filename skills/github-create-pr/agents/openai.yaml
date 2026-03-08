@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Create PR"
+  short_description: "レビューア向けにPRを作成・更新する"
+  default_prompt: "Use $github-create-pr to create or update a GitHub pull request with reviewer-first explanations."

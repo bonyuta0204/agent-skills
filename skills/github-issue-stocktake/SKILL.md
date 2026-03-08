@@ -184,6 +184,11 @@ ${TMPDIR:-/tmp}/github-issue-stocktake-<repo-slug-safe>.json
 - `scripts/validate_worker_report.sh --json-file <file>` で worker 出力を検証する
 - `AI_FIXABLE` で `expected_behavior` が string の場合は reject
 - `spec_refs` は空配列を許可する。ただし、仕様が見つからないなら `gap_analysis` に不足情報を書く
+- worker が `CLOSE_DONE` を返した場合、PM は **ローカル checkout や default branch だけで確定しない**
+- `CLOSE_DONE` 採用前に、GitHub 上の PR / commit が実際の運用ブランチへ到達しているかを確認する
+- 長期運用ブランチがある repo では、少なくとも `develop` 系・release 系・sprint 系など実際のマージ先を確認する
+- `Closes #...` 付き PR が merge 済みでも、default branch と実運用ブランチが異なると Issue が自動 close されないことがある
+- その場合は「実装は解消済みだが workflow 上 open に残っている」ことを `gap_analysis` または `summary` に明記して `CLOSE_DONE` を採用してよい
 - reject 時は同一taskを1回だけ再試行する
 - 2回失敗した場合は state file に `failure_kind` を残し、最終報告へ回す
 
