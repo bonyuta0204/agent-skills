@@ -37,6 +37,8 @@
 
 - Skills are the source of truth. Do not modify linked copies under `~/.codex/skills/` directly.
 - Prefer updating `README.md` when adding or changing skills so contributors can discover them quickly.
+- この repo で新規作成・更新する skill の本文は日本語で書く。
+- この repo で作成・更新する PR のタイトルと本文は日本語で書く。
 
 ## Session Learnings
 

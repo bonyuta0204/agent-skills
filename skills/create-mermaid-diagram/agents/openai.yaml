@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Mermaid Diagram"
+  short_description: "Mermaid図を壊れにくく作成・修正する"
+  default_prompt: "Use $create-mermaid-diagram to write or repair Mermaid diagrams with render validation, escaping checks, and style best practices."
