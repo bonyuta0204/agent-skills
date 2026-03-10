@@ -71,7 +71,7 @@ make unlink SKILL=create-design-doc
 | [`create-design-doc`](skills/create-design-doc/SKILL.md) | Create kpiee design docs (basic or detail) in kpiee-designs using repo templates. |
 | [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake with worker-based primary investigation, strict JSON validation, and controlled issue body/label updates. |
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
-| [`review-design-doc`](skills/review-design-doc/SKILL.md) | Review kpiee-designs design docs in GitHub pull requests. |
+| [`review-design-doc`](skills/review-design-doc/SKILL.md) | GitHub PR 上の kpiee-designs 設計書を dedicated worktree で開き、必要なら関連 repo も worktree で読みつつ、文書品質と設計妥当性の 2 ステップでレビューして、日本語の inline review と総評を返す。 |
 
 ## Add a new skill
 
