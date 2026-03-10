@@ -1,6 +1,6 @@
 ---
 name: review-design-doc
-description: GitHub PR 上の kpiee-designs 設計書をレビューする skill。文書品質レビューと設計妥当性レビューを分けて行い、必要に応じて関連実装や Notion / Figma を読み、日本語の inline review と総評を返すときに使う。
+description: GitHub PR 上の kpiee-designs 設計書をレビューする skill。kpiee-designs を dedicated worktree に pull して、文書品質レビューと設計妥当性レビューを分けて行い、必要に応じて関連実装や Notion / Figma を読み、日本語の inline review と総評を返すときに使う。
 ---
 
 # Review Design Doc
@@ -18,6 +18,7 @@ kpiee-designs の設計書 PR をレビューする skill。
 ## 基本方針
 
 - まず repo ルールと template を確認する
+- `kpiee-designs` 本体は current workspace ではなく dedicated worktree で開く
 - レビューは「文書品質」と「設計妥当性」の 2 ステップに分ける
 - PR の最新 head を必ず取り直してからレビューする
 - changed files の判定で `git show --name-only` は使わない
@@ -34,27 +35,44 @@ kpiee-designs の設計書 PR をレビューする skill。
 
 - PR URL または PR 番号を確認する
 - 対象 repo が `kpiee-designs` か確認する
-- PR 番号だけが渡された場合は、現在の repo が対象か先に確認する
+- PR 番号だけが渡された場合は owner / repo を確認する
+- local の `kpiee-designs` repo path を `ghq` で確認する
 
 不足情報がある場合だけ確認する。scope が曖昧なら設計書レビューかどうかを明示的に確認する。
 
-### 2. local workspace を安全に準備する
-
-- `git status --short` で作業ツリーを確認する
-- 未コミット変更がある場合、勝手に checkout せず影響有無を見て扱う
-- PR checkout は `gh pr checkout <PR番号>` を優先する
-- `gh` が使えない場合だけ fallback を使う
-
-fallback の例:
+repo path の確認例:
 
 ```bash
-git fetch origin pull/<PR番号>/head
-git switch -C pr-<PR番号> FETCH_HEAD
+ghq list -p | rg '/kpiee-designs$'
 ```
 
-既に `pr-<PR番号>` が存在しても、そのまま再利用しない。レビュー直前に必ず最新 head を fetch し直す。
+### 2. kpiee-designs の review worktree を準備する
 
-### 3. PR metadata と review scope を取る
+- review は dedicated worktree で行う
+- `kpiee-designs` の main repo 直下の current branch は触らない
+- まず repo root で `git fetch origin` する
+- review 用 path を決める
+  - 例: `/tmp/kpiee-designs-pr-<PR番号>`
+- 既存 worktree があれば、古い review 状態を引きずらないよう再作成または branch を作り直す
+
+PR head を worktree に展開する例:
+
+```bash
+cd <kpiee-designs-repo>
+git fetch origin pull/<PR番号>/head
+git worktree add -B review-pr-<PR番号> /tmp/kpiee-designs-pr-<PR番号> FETCH_HEAD
+```
+
+`gh` を使う場合も、review の実作業は worktree 側で行う。primary checkout 上で `gh pr checkout` してそのまま進めない。
+
+既存 worktree を再利用するなら、次の 2 点を満たすこと。
+
+- PR の最新 head を fetch し直している
+- review 用 branch / path が今回の PR に対応している
+
+### 3. review worktree 上で PR metadata と review scope を取る
+
+以降の確認は原則 review worktree 側で行う。
 
 まず PR metadata を取る。
 
@@ -81,8 +99,8 @@ changed files の把握は次の優先順で行う。
 
 最低限次を読む。
 
-- `AGENTS.md`
-- `CLAUDE.md` があればそれも読む
+- review worktree 内の `AGENTS.md`
+- review worktree 内の `CLAUDE.md` があればそれも読む
 - `docs/onboarding/` 配下の対応 template
 
 確認すること:
@@ -94,7 +112,7 @@ changed files の把握は次の優先順で行う。
 
 ### 5. 補助コンテキストを必要最小限で集める
 
-- 設計書本体を起点に、設計妥当性の確認に必要な情報だけ追加で読む
+- review worktree 上の設計書本体を起点に、設計妥当性の確認に必要な情報だけ追加で読む
 - まず PR 本文、`AGENTS.md`、設計書本文中の参照先から当たりを付ける
 - Notion の要件定義書 / 仕様書や Figma が示されていることが多いが、常に読む前提にしない
 - 仕様差分や画面要件の確認が必要なときだけ、該当 section や該当 frame に絞って読む
@@ -246,6 +264,7 @@ gh api \
 ### 9. ユーザーへ報告する
 
 - 何をレビューしたか
+- `kpiee-designs` をどの worktree path で読んだか
 - 文書品質レビューと設計妥当性レビューをどう進めたか
 - 読んだ関連 repo / Notion / Figma が何か
 - MUST / SHOULD / QUESTION の件数
