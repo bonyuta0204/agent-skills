@@ -23,6 +23,7 @@ kpiee-designs の設計書 PR をレビューする skill。
 - PR の最新 head を必ず取り直してからレビューする
 - changed files の判定で `git show --name-only` は使わない
 - 関連実装や外部仕様は、設計妥当性の確認に必要な範囲だけ読む
+- `dx-kpiee` や `zelda-kpiee` などの関連 repo を読む場合も、必要なら dedicated worktree を使う
 - Notion / Figma / 関連 repo は必要時だけ開き、不要にコンテキストを増やさない
 - レビューコメントは原則日本語で書く
 - inline comment は「diff 上の changed line にだけ」付ける
@@ -121,6 +122,7 @@ changed files の把握は次の優先順で行う。
 関連実装を読むルール:
 
 - 設計妥当性の判断に必要なら、関連する実装 repo を読む
+- 関連 repo も、可能なら main checkout ではなく dedicated worktree で読む
 - 基本的には `develop` または `main` を最新化した状態で読む
 - stale な local branch のまま根拠にしない
 
@@ -132,9 +134,21 @@ git switch develop && git pull --ff-only
 # develop が無い repo は main を使う
 ```
 
+関連 repo を worktree で読む例:
+
+```bash
+cd <related-repo>
+git fetch origin
+git worktree add -B review-read-<topic> /tmp/<repo>-review-<topic> origin/develop
+# develop が無い repo は origin/main を使う
+```
+
+レビューのためのコードリーディングでは、既存の作業 branch や未コミット変更を抱えた checkout を根拠にしない。
+
 `dx-kpiee` / `zelda-kpiee` の connector 設計では、必要に応じて `atlas-kpiee` と `atlas-core` も確認する。
 
 - repo path は `ghq` で探す
+- 必要なら `dx-kpiee` / `zelda-kpiee` / `atlas-kpiee` / `atlas-core` それぞれに review 用 worktree を切る
 - connector 境界、共通基盤、schema / API 契約の置き場所を優先して読む
 - 設計判断に関係しない広い探索はしない
 
