@@ -1,8 +1,8 @@
-# PR Review Checklist (Format + Architecture)
+# PR Review Checklist (Format + Architecture + PR Description)
 
 ## Scope
 
-- Focus on formatting/style consistency and architecture alignment.
+- Focus on formatting/style consistency, architecture alignment, and PR description quality.
 - Not a bug hunt unless a change clearly violates architectural or style rules.
 
 ## Checklist
@@ -32,13 +32,21 @@
    - Docs updated if new modules or rules were added.
    - Tests updated if required by repo conventions.
 
+7. PR title/body quality
+   - PR template sections are present when the repo expects them.
+   - The summary explains the user-facing behavior or reviewer context before internal identifiers.
+   - Root cause and fix explanation match the actual diff.
+   - Verification evidence is concrete, and unverified areas are called out explicitly.
+   - Impact investigation and related Issue/spec/PR links are present when the repo expects them.
+
 ## Review Output Template
 
 - Findings (ordered by severity)
   1) [Architecture] path:line - issue and expectation
   2) [Placement] path:line - issue and expectation
   3) [Style] path:line - issue and expectation
+  4) [PR説明] PR本文/タイトル - 何が足りないか、なぜレビューしづらいか、どう直すべきか
 - Questions / assumptions
   - Clarify any intent if architecture choice is ambiguous.
 - If clean
-  - "No findings." List what was checked (docs, diff, similar files).
+  - "No findings." List what was checked (docs, diff, similar files, PR本文).

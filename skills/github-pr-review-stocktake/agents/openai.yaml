@@ -1,0 +1,6 @@
+interface:
+  display_name: "GitHub PRレビュー棚卸し PM"
+  short_description: "レビュー対象PRを返却候補と優先順位に仕分けするPMオーケストレーター"
+  default_prompt: "自分がレビューすべき GitHub PR の棚卸しをPMとして進める。scope は global / owner / repo / explicit pr_numbers のいずれかで解決し、repo 横断の一覧取得には `gh search prs --review-requested @me --state open` を使う。owner や repo の指定があれば検索で絞り込み、各PRの詳細は `gh pr view --repo <owner/repo> <number> --json ...` で補う。対象PRごとに shallow investigation worker を1件ずつ起動し、Draft / CI / mergeability / review state / size signal をもとに RETURN_NOW / WATCH / REVIEW_NOW / DONE_OR_OUT_OF_SCOPE のいずれかへ正規化する。REVIEW_NOW には difficulty、estimated_review_minutes、risk、urgency、priority_tier を付け、最終的に『今すぐ返す』『様子見』『今見る順番』の3レーンでレポートする。ユーザーの明示指示がない限り、PR review や comment の投稿など GitHub 更新は行わない。"
+policy:
+  allow_implicit_invocation: true
