@@ -7,32 +7,38 @@
 
 ## Checklist
 
-1. Architecture style and boundaries
+1. Problem size vs solution size
+   - Restate the bug/change request in one sentence without relying on the current implementation.
+   - Restate the PR's solution in one sentence.
+   - Check whether the PR expands state ownership, synchronization paths, cache strategy, initialization rules, or default behavior beyond what the problem needs.
+   - If the diff looks overbuilt, identify the narrower model that would solve the same problem.
+
+2. Architecture style and boundaries
    - Clean/onion/DDD layering rules honored.
    - Dependencies point inward; no cross-layer leaks.
    - Usecases/controllers/services reside in expected layers.
 
-2. File placement and module structure
+3. File placement and module structure
    - New files placed in correct feature or layer directory.
    - Similar functionality follows existing folder patterns.
 
-3. Public API shape and naming
+4. Public API shape and naming
    - Public entry points are minimal and consistent.
    - Names communicate intent and scope.
 
-4. Formatting and style
+5. Formatting and style
    - Formatting matches repo tooling (lint/format rules).
    - Code style consistent with adjacent files.
 
-5. Consistency with existing patterns
+6. Consistency with existing patterns
    - Similar files are used as a reference and patterns are followed.
    - Avoid parallel or redundant abstractions.
 
-6. Docs and tests (only if rules require)
+7. Docs and tests (only if rules require)
    - Docs updated if new modules or rules were added.
    - Tests updated if required by repo conventions.
 
-7. PR title/body quality
+8. PR title/body quality
    - PR template sections are present when the repo expects them.
    - The summary explains the user-facing behavior or reviewer context before internal identifiers.
    - Root cause and fix explanation match the actual diff.

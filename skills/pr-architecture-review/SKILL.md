@@ -17,26 +17,40 @@ Perform a local PR checkout, collect repository conventions, inspect diffs and a
    - Prefer `scripts/checkout_pr.sh <pr-url> [remote]` or `gh pr checkout <number>` when available.
    - Fallback: `git fetch origin pull/<number>/head:pr-<number>` then `git checkout pr-<number>`.
 
-2. Gather conventions
+2. Frame the change from zero
+   - Before reading the implementation in detail, write a one-sentence problem statement that does not depend on the current diff.
+   - Then write a one-sentence summary of what the PR is changing to solve that problem.
+   - Compare the size of the problem and the size of the solution. If the diff broadens state ownership, cache strategy, initialization rules, or cross-layer contracts more than the problem seems to require, treat that as a primary review angle.
+   - Ask explicitly whether the behavior is:
+     - a one-time restore or a continuous synchronization problem
+     - a local UI state problem or a shared/persistent state problem
+     - a bug fix in one path or a model change that affects normal/default behavior
+   - If a smaller model seems sufficient, keep that alternative in mind before writing findings. The review should not stop at "this feels heavy"; say which narrower ownership or transient-state approach would fit better.
+
+3. Gather conventions
    - Read `CLAUDE.md`, `AGENTS.md`, `.windsurf/rules/*` or `.windsurfrules` (if present), `README`, and `docs/architecture` or ADRs if present.
    - Read the current PR title/body and the repo PR template if present.
    - Extract: architecture style, layer boundaries, file placement rules, naming conventions, formatting/linters, review comment language.
    - Reuse the PR explanation viewpoints from `github-create-pr`: reviewer context, root cause, fix explanation, verification, impact investigation, and similar defect investigation.
 
-3. Inspect changes
+4. Inspect changes
    - Use `git status -sb`, `git diff --stat`, and `git diff <base>...HEAD` or `gh pr diff`.
    - For each changed file, open the file and 1-2 similar files in the same feature or directory to compare patterns.
    - Validate: file placement, dependency direction, layer boundaries, naming, public API shape, formatting/lint alignment.
+   - Review function and method interfaces carefully. Do not stop at "there are many arguments"; check whether the signature mixes distinct concerns such as business input, preloaded dependencies, cache transport, or persistence details.
+   - For domain models, check whether the model itself owns the expected behavior. When services or use cases directly inspect fields, maps, lengths, or status combinations to interpret business rules, treat that as a possible leak of domain behavior.
    - Validate the PR description against the actual diff and template: missing sections, stale explanations, unclear reviewer context, weak verification evidence, and missing issue/spec links when the repo expects them.
    - Do not run heavy tests unless the user asks.
 
-4. Produce review
+5. Produce review
    - Use the checklist in `references/review-checklist.md`.
+   - When a fix looks overbuilt, say so explicitly. Compare the problem statement and the solution scope in plain language before diving into file-level details.
    - Prioritize architecture or convention violations first, then style/formatting issues.
    - Include PR description findings when the title/body is missing, misleading, stale, or below the repo/template expectation.
    - Include file:line references and concise, actionable guidance.
    - When writing review comments in Japanese, prefer natural Japanese over literal translations from English.
-   - Avoid unnecessary English words unless they are code identifiers, official tool names, or technical terms that would become less clear in Japanese.
+   - Avoid unnecessary English words, jargon, and abstract reviewer shorthand unless they are code identifiers, official tool names, or terms that would become less clear in Japanese.
+   - If you use a technical or abstract term such as interface, domain behavior, or DTO, immediately rewrite it in plain Japanese so the comment still reads clearly to someone who does not use that jargon in daily work.
    - After drafting each Japanese review comment, do one rewrite pass that checks whether it reads like natural Japanese written by a reviewer, not translated prose.
    - Prefer short sentences and direct wording. Lead with the problem, then explain the cause and impact in that order.
    - If no issues, say so and list what was checked.
