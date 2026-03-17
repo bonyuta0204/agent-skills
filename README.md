@@ -70,6 +70,7 @@ make unlink SKILL=create-design-doc
 | --- | --- |
 | [`create-design-doc`](skills/create-design-doc/SKILL.md) | Create kpiee design docs (basic or detail) in kpiee-designs using repo templates. |
 | [`create-mermaid-diagram`](skills/create-mermaid-diagram/SKILL.md) | Mermaid 図を壊れにくく作成・修正し、render 検証と syntax/style のチェックまで行う。 |
+| [`dx-kpiee-go-arch-review`](skills/dx-kpiee-go-arch-review/SKILL.md) | dx-kpiee の `backend/go` 変更を DDD / Clean Architecture / Onion Architecture の観点に絞ってレビューする。 |
 | [`github-create-pr`](skills/github-create-pr/SKILL.md) | GitHub の Pull Request をレビューア向け説明で作成・更新し、repo 固有の preflight、template、milestone も扱う。 |
 | [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake/triage with worker-based primary investigation, PM-owned duplicate handling, resumable state tracking, and controlled `AI_STOCKTAKE` body/label updates. |
 | [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | GitHub 全体または repo 横断でレビュー対象PRを集め、返却候補・様子見・今見る順番に仕分ける PM-style stocktake skill。 |
