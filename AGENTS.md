@@ -32,6 +32,7 @@
 
 - Use concise, imperative commit messages (e.g., “Add link-all target for skill symlinks”).
 - PRs should include a short summary, the affected skill paths, and any commands used for verification.
+- PR title and body should be written in Japanese unless the repository explicitly requires another language.
 
 ## Agent-Specific Instructions
 

@@ -4,148 +4,167 @@
 
 ```json
 {
-  "task_id": "pr-review-stocktake-20260311-001",
-  "repo_path": "/path/to/repo",
+  "task_id": "pr-review-stocktake-20260317-001",
   "repo_slug": "owner/repo",
-  "pr_numbers": [1234],
-  "task_mode": "single_pr",
+  "repo_path": "/path/to/repo-or-null",
+  "pr_number": 1234,
+  "pr_url": "https://github.com/owner/repo/pull/1234",
+  "analysis_mode": "remote_first",
+  "reference_hints": [
+    "https://notion.so/...",
+    "#1201"
+  ],
   "rules": {
-    "queue_bucket_enum": [
-      "RETURN_NOW",
-      "WATCH",
-      "REVIEW_NOW",
-      "DONE_OR_OUT_OF_SCOPE"
-    ],
     "must_not_mutate_pr": true,
-    "prefer_wait_for_other_review_first": true
-  },
-  "return_policy_hints": [
-    "CI red は返す",
-    "他レビュアー未着手なら様子見"
-  ]
+    "must_separate_pass_through_and_real_target": true,
+    "must_provide_review_route": true
+  }
 }
 ```
 
-- `task_mode` は `single_pr` 固定
-- `pr_numbers` は常に1件
-- worker は GitHub を更新しない
-- worker は deep review に進まず、review readiness 判定だけを返す
+- `analysis_mode` は `remote_first` または `local_checkout`
+- worker は PR を更新しない
+- worker は review verdict を返さない
 
 ## Worker -> PM Output JSON
 
 トップレベル必須:
 
 - `task_id`
-- `task_mode`
-- `results`（non-empty array）
-
-`results[]` 必須:
-
+- `repo_slug`
 - `pr_number`
-- `queue_bucket`
-- `confidence`
+- `analysis_mode`
 - `summary`
-- `review_state_summary`
-- `blocking_reasons`
-- `recommended_action`
+- `confidence`
+- `review_route`
+- `attention_signals`
+- `pass_through_paths`
+- `real_review_targets`
+- `human_judgment_calls`
+- `low_attention_areas`
 - `evidence`
-- `size_signal`
 
-`evidence` 必須:
+### `review_route[]`
 
-- `metadata_refs`（non-empty string array）
-- `status_checks_summary`（non-empty string array）
-- `review_signals`（non-empty string array）
+各要素の必須:
 
-`size_signal` 必須:
+- `step`
+- `why_this_order`
+- `refs`
+- `question_to_answer`
 
-- `changed_files`（integer, `>= 0`）
-- `additions`（integer, `>= 0`）
-- `deletions`（integer, `>= 0`）
-- `hotspots`（string array, empty allowed）
+`refs` は file path, PR section, spec URL などの string array。
 
-追加必須:
+### `attention_signals[]`
 
-- `RETURN_NOW`: `return_message_draft`
-- `WATCH`: `wait_reason`, `recheck_hint`
-- `REVIEW_NOW`: `difficulty`, `estimated_review_minutes`, `risk`, `urgency`, `priority_tier`, `risk_notes`, `effort_notes`
-- `DONE_OR_OUT_OF_SCOPE`: `done_reason`
+各要素の必須:
 
-## Enum Rules
+- `ref`
+- `signal_type`
+- `why_this_signal`
 
-`blocking_reasons` は次から選ぶ:
+任意:
 
-- `DRAFT_PR`
-- `CI_RED`
-- `CI_PENDING`
-- `CI_PENDING_TOO_LONG`
-- `MERGE_CONFLICT`
-- `WAIT_OTHER_REVIEW_FIRST`
-- `CHANGES_REQUESTED_PENDING`
-- `WAIT_AUTHOR_RESPONSE`
-- `BLOCKED_BY_DEPENDENCY`
-- `BLOCKED_BY_LABEL`
-- `ALREADY_REVIEWED_BY_ME`
-- `NOT_MY_SCOPE`
+- `suggested_focus`
 
-`difficulty`:
+`signal_type` は次のいずれか:
 
-- `S`
-- `M`
-- `L`
-- `XL`
+- `SMELL`
+- `SPEC_CHECK`
+- `DESIGN_CHECK`
+- `RISK_CHECK`
+- `LOW_SIGNAL`
 
-`risk` / `urgency`:
+### `pass_through_paths[]`
 
-- `LOW`
-- `MEDIUM`
-- `HIGH`
-- `CRITICAL`
+各要素の必須:
 
-`priority_tier`:
+- `ref`
+- `reason`
 
-- `P0`
-- `P1`
-- `P2`
-- `P3`
+### `real_review_targets[]`
+
+各要素の必須:
+
+- `ref`
+- `why_it_matters`
+- `risk_kind`
+
+`risk_kind` 例:
+
+- `business_logic`
+- `layer_boundary`
+- `transaction`
+- `permission`
+- `serialization`
+- `external_io`
+- `compatibility`
+- `error_handling`
+
+### `human_judgment_calls[]`
+
+各要素の必須:
+
+- `question`
+- `why_human_judgment_is_needed`
+- `refs`
+
+空配列は許可するが、その場合は `low_attention_areas` または `summary` に low-risk 根拠が必要。
+
+### `low_attention_areas[]`
+
+各要素の必須:
+
+- `ref`
+- `reason`
+
+### `evidence`
+
+必須:
+
+- `diff_refs`（non-empty string array）
+- `repo_rule_refs`（string array, empty allowed）
+- `similar_impl_refs`（string array, empty allowed）
+- `notes`（non-empty string array）
 
 ## Validation Rules
 
-1. 壊れたJSON、必須不足、enum外は reject
-2. `RETURN_NOW` なのに `blocking_reasons` が空なら reject
-3. `RETURN_NOW` なのに `return_message_draft` が空なら reject
-4. `WATCH` なのに `wait_reason` または `recheck_hint` が空なら reject
-5. `REVIEW_NOW` なのに `difficulty` / `estimated_review_minutes` / `risk` / `urgency` / `priority_tier` のいずれかが欠けたら reject
-6. `estimated_review_minutes <= 0` は reject
-7. `DONE_OR_OUT_OF_SCOPE` なのに `done_reason` が空なら reject
-8. `status_checks_summary` に non-terminal check があるのに `DONE_OR_OUT_OF_SCOPE` を返したら reject
+1. 壊れた JSON、必須不足、型不一致は reject
+2. `review_route` は 1 件以上必須
+3. `attention_signals` は 1 件以上必須
+4. `pass_through_paths` と `real_review_targets` を同時に空配列にしない
+5. `confidence` は 0.0 以上 1.0 以下
+6. remote-first で local repo rule を見ていない場合は `repo_rule_refs` 空配列を許可する
 
-## Check Completion Rule
+## Sticky Comment Semantic Slots
 
-- `statusCheckRollup` に `QUEUED` / `IN_PROGRESS` / `PENDING` / `WAITING` 相当が含まれる場合、その PR は `DONE_OR_OUT_OF_SCOPE` にしない
-- その場合は原則 `WATCH` にし、`blocking_reasons` に `CI_PENDING` を含める
-- すでに自分が review 済みでも、check 完了待ちであれば `wait_reason` にその旨を書く
+コメントの見出しや段落構成は固定しない。  
+ただし、最終コメントは以下の意味情報を全て含むこと。
 
-## Recommended Report Shape
+1. この PR の実質的な変更要約
+2. どの順番で見ると追いやすいか
+3. signal 分類された重点観点
+4. pass-through なので深追い不要な箇所
+5. 実際に深く見るべき箇所
+6. 人間が判断すべき論点
+7. low-signal と見てよい箇所
+8. 根拠
+9. 不確実性や前提
 
-PM が normalized JSON から作る最終レポートの最小形:
+signal の見せ方は固定しないが、少なくとも次を読者が識別できること。
 
-```text
-今すぐ返す
-- #1234 タイトル
-  - 理由: CI_RED, MERGE_CONFLICT
-  - 返却文案: CI と conflict を解消後に再度 review request をお願いします
+- `SMELL`: 実装臭として警戒
+- `SPEC_CHECK`: 仕様確認を先に置くべき
+- `DESIGN_CHECK`: 責務や境界を見たほうがよい
+- `RISK_CHECK`: 副作用や互換性を見たほうがよい
+- `LOW_SIGNAL`: 深追い優先度が低い
 
-様子見
-- #1235 タイトル
-  - 理由: WAIT_OTHER_REVIEW_FIRST
-  - 再確認: 明日朝
+## Sticky Comment Marker
 
-今見る順番
-1. #1236 タイトル | P0 | 15m | HIGH
-2. #1237 タイトル | P1 | 30m | MEDIUM
-
-役目完了 / 対象外
-- #1238 タイトル
-  - 理由: ALREADY_REVIEWED_BY_ME
+```md
+<!-- AI_PR_REVIEW_STOCKTAKE_START -->
+... generated comment body ...
+<!-- AI_PR_REVIEW_STOCKTAKE_END -->
 ```
+
+PM はこの marker を含む **自分のコメントのみ** を upsert 対象にする。

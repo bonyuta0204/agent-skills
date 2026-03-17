@@ -73,7 +73,7 @@ make unlink SKILL=create-design-doc
 | [`dx-kpiee-go-arch-review`](skills/dx-kpiee-go-arch-review/SKILL.md) | dx-kpiee の `backend/go` 変更を DDD / Clean Architecture / Onion Architecture の観点に絞ってレビューする。 |
 | [`github-create-pr`](skills/github-create-pr/SKILL.md) | GitHub の Pull Request をレビューア向け説明で作成・更新し、repo 固有の preflight、template、milestone も扱う。 |
 | [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake/triage with worker-based primary investigation, PM-owned duplicate handling, resumable state tracking, and controlled `AI_STOCKTAKE` body/label updates. |
-| [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | GitHub 全体または repo 横断でレビュー対象PRを集め、返却候補・様子見・今見る順番に仕分ける PM-style stocktake skill。 |
+| [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | 自分に assign / review request された PR を棚卸しし、レビュー順・pass-through・重点論点を整理した sticky review comment を更新する。 |
 | [`kpiee-pm-ops`](skills/kpiee-pm-ops/SKILL.md) | PM+Ops orchestrator for kpiee delivery: architecture-aware task decomposition, issue/PR operations, CI/deploy execution, and release reporting via sub-agents. |
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
 | [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with a reusable toolkit for logs, ECS, DB, and Snowflake, using confirmed target references when needed. |
