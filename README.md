@@ -74,6 +74,7 @@ make unlink SKILL=create-design-doc
 | [`github-create-pr`](skills/github-create-pr/SKILL.md) | GitHub の Pull Request をレビューア向け説明で作成・更新し、repo 固有の preflight、template、milestone も扱う。 |
 | [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake/triage with worker-based primary investigation, PM-owned duplicate handling, resumable state tracking, and controlled `AI_STOCKTAKE` body/label updates. |
 | [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | 自分に assign / review request された PR を棚卸しし、レビュー順・pass-through・重点論点を整理した sticky review comment を更新する。 |
+| [`kpiee-bastion-ops`](skills/kpiee-bastion-ops/SKILL.md) | kpiee の non-prod 環境で、共有 bastion 優先の踏み台ルーティングに従って日常的な確認作業を安全に進める。 |
 | [`kpiee-pm-ops`](skills/kpiee-pm-ops/SKILL.md) | PM+Ops orchestrator for kpiee delivery: architecture-aware task decomposition, issue/PR operations, CI/deploy execution, and release reporting via sub-agents. |
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
 | [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with a reusable toolkit for logs, ECS, DB, and Snowflake, using confirmed target references when needed. |
