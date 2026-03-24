@@ -42,6 +42,24 @@ Use generic scripts in `scripts/` for execution, and pick concrete values from h
 - Start every investigation by fixing the target env first.
 - When the target is ambiguous, do not mix `stg` with `stg01` or `stg02`. They are separate live environments.
 
+## DB Route Quick Map
+
+Use this before deciding which host parameters and port to use.
+
+| target | host params | auth params | port | DB family | typical purpose |
+| --- | --- | --- | ---: | --- | --- |
+| `dx-kpiee` app DB | `/dx-kpiee-{env}/db-host` | `/dx-kpiee-{env}/db-username`, `/dx-kpiee-{env}/db-password` | 4000 | TiDB | account DBs like `{env}_dx_kpiee_0001`, direct checks on `data_files` and `reports` |
+| `kpiee` read DB | `/kpiee-{env}/db-read-host` | `/kpiee-{env}/db-read-username`, `/kpiee-{env}/db-read-password` | 3306 | MySQL/RDS | `zelda_kpiee_*` lookup such as `workspaces.name` or `workspace_users` |
+
+Cross-check the logical DB names from taskdefs when you need them:
+
+| env | dx-kpiee shared DB | kpiee shared DB |
+| --- | --- | --- |
+| `it` | `dx_kpiee_integration` | `zelda_kpiee_integration` |
+| `stg` | `dx_kpiee_staging` | `zelda_kpiee_staging` |
+| `stg01` | `dx_kpiee_staging01` | `zelda_kpiee_staging01` |
+| `stg02` | `dx_kpiee_staging02` | `zelda_kpiee_staging02` |
+
 ## zelda-kpiee
 
 Source repo: `f-scratch/zelda-kpiee` (resolve locally with `ghq list -p`)

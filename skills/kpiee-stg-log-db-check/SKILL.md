@@ -175,6 +175,12 @@ In the normal path you should not need this first. The MySQL helper tries the sh
 
 Use this only when direct DB evidence is necessary.
 
+Connection quick rules:
+
+- `dx-kpiee` app-owned DB parameters (`/dx-kpiee-{env}/db-*`) point to TiDB. Use port `4000`.
+- `kpiee` read-side DB parameters (`/kpiee-{env}/db-read-*`) point to MySQL/RDS. Use port `3306`.
+- When the SQL is longer than a one-liner, prefer `--sql-file`. This avoids shell quoting breakage with backticks, quotes, and cross-schema `UNION ALL`.
+
 Default behavior:
 
 - try the shared non-prod bastion `kpiee-infra-dev` first
@@ -199,12 +205,46 @@ scripts/mysql_query_via_bastion_ssm.sh \
   --sql 'SELECT NOW()'
 ```
 
+When the password comes from SSM, prefer `MYSQL_PASSWORD` over embedding it in the shell command:
+
+```bash
+DX_HOST="$(aws ssm get-parameter --name /dx-kpiee-stg/db-host --with-decryption --query 'Parameter.Value' --output text)"
+DX_USER="$(aws ssm get-parameter --name /dx-kpiee-stg/db-username --with-decryption --query 'Parameter.Value' --output text)"
+DX_PASS="$(aws ssm get-parameter --name /dx-kpiee-stg/db-password --with-decryption --query 'Parameter.Value' --output text)"
+
+MYSQL_PASSWORD="$DX_PASS" scripts/mysql_query_via_bastion_ssm.sh \
+  --host "$DX_HOST" \
+  --port 4000 \
+  --database information_schema \
+  --user "$DX_USER" \
+  --sql-file /path/to/query.sql
+```
+
 Notes:
 
 - as of 2026-03-07, the fixed shared bastion is `kpiee-infra-dev` and SSM execution was verified on that host
 - read-only protection is heuristic, not a formal guarantee
 - `--discover-bastion` is still available when you want to skip the fixed route and inspect the heuristic path first
 - use `--force` only when you intentionally need to bypass the default block
+
+## Tool: dx-kpiee Account DB Row Counts
+
+Use this when you need the top accounts by row count for one table across `dx-kpiee` account DBs.
+
+```bash
+scripts/count_dx_account_table_rows.sh \
+  --env stg \
+  --table data_files \
+  --limit 20 \
+  --with-workspace-names
+```
+
+This helper:
+
+- fetches `dx-kpiee` DB credentials from SSM
+- queries `information_schema` to find matching account DBs
+- builds the cross-schema count query into a temp SQL file
+- optionally joins `zelda_kpiee_*.workspaces` to resolve account names
 
 ## Tool: Snowflake Investigation
 
