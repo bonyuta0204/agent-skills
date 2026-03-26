@@ -32,11 +32,14 @@
 
 - Use concise, imperative commit messages (e.g., “Add link-all target for skill symlinks”).
 - PRs should include a short summary, the affected skill paths, and any commands used for verification.
+- PR title and body should be written in Japanese unless the repository explicitly requires another language.
 
 ## Agent-Specific Instructions
 
 - Skills are the source of truth. Do not modify linked copies under `~/.codex/skills/` directly.
 - Prefer updating `README.md` when adding or changing skills so contributors can discover them quickly.
+- この repo で新規作成・更新する skill の本文は日本語で書く。
+- この repo で作成・更新する PR のタイトルと本文は日本語で書く。
 
 ## Session Learnings
 

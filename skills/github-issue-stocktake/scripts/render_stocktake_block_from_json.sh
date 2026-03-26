@@ -156,6 +156,7 @@ esac
     echo
     echo "### 人間アクション（\`HUMAN_*\` のとき）"
     echo "- 依頼先: $(jq -r '.human_action_owner' "$tmp_result")"
+    echo "- 次アクション種別: \`$(jq -r '.human_next_action_type' "$tmp_result")\`"
     echo "- 確認事項:"
     jq -r '.human_action_items[]?' "$tmp_result" | sed 's/^/  - /'
   fi

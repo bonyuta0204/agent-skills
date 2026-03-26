@@ -123,7 +123,7 @@ if [[ $has_start -eq 1 ]]; then
 else
   cp "$BODY_FILE" "$OUT_FILE"
   if [[ -s "$OUT_FILE" ]]; then
-    printf '\n\n---\n\n' >> "$OUT_FILE"
+    printf '\n\n' >> "$OUT_FILE"
   fi
   printf '%s\n' "$block_content" >> "$OUT_FILE"
 fi

@@ -1,179 +1,262 @@
 ---
 name: review-design-doc
-description: Review kpiee-designs design docs in GitHub pull requests. Use when asked to review a PR like "https://github.com/f-scratch/kpiee-designs/pull/301", "設計書レビューして", or "PRの設計書をチェックしてコメントして". The workflow includes checking out the PR branch locally, validating design doc templates and content quality, and posting review comments on the PR in Japanese.
+description: GitHub PR 上の kpiee-designs 設計書をレビューする skill。文書品質レビューと設計妥当性レビューを分けて行い、必要に応じて関連実装や Notion / Figma を読み、日本語の inline review と総評を返すときに使う。
 ---
 
 # Review Design Doc
 
-This document defines the **standards and workflow for reviewing design documents** in the kpiee-designs repository.
+kpiee-designs の設計書 PR をレビューする skill。
 
-The purpose of this review is to keep design documents from becoming mere "implementations in prose" and instead ensure they function as documents that **communicate intent, mechanism, and shared decisions**.
+目的は、設計書を「実装メモ」ではなく、意図・仕組み・判断理由を共有できる文書として保つことです。
 
-Ultimately, this process aims to raise the team’s overall design and articulation skills.
+## いつ使うか
 
----
+- `kpiee-designs` の PR URL / PR 番号を渡されて、設計書レビューを頼まれたとき
+- 「設計書レビューして」「PR の設計書をチェックしてコメントして」と依頼されたとき
+- GitHub 上にレビューコメントを書く前提で、template 準拠と内容品質を確認したいとき
+
+## 基本方針
+
+- まず repo ルールと template を確認する
+- レビューは「文書品質」と「設計妥当性」の 2 ステップに分ける
+- PR の最新 head を必ず取り直してからレビューする
+- changed files の判定で `git show --name-only` は使わない
+- 関連実装や外部仕様は、設計妥当性の確認に必要な範囲だけ読む
+- Notion / Figma / 関連 repo は必要時だけ開き、不要にコンテキストを増やさない
+- レビューコメントは原則日本語で書く
+- inline comment は「diff 上の changed line にだけ」付ける
+- diff 上に乗らない指摘は summary comment に寄せる
+- 新しい要求を足すのではなく、設計書として必要な説明の不足や矛盾を指摘する
 
 ## Workflow
 
-### 1) Gather inputs
+### 1. 入力を確認する
 
-* Obtain the PR URL or PR number (ask if missing)
-* Confirm the target repository contains design documents intended for review
+- PR URL または PR 番号を確認する
+- 対象 repo が `kpiee-designs` か確認する
+- PR 番号だけが渡された場合は、現在の repo が対象か先に確認する
 
-  * If unclear, ask the user to confirm the scope
+不足情報がある場合だけ確認する。scope が曖昧なら設計書レビューかどうかを明示的に確認する。
 
----
+### 2. local workspace を安全に準備する
 
-### 2) Prepare local workspace
+- `git status --short` で作業ツリーを確認する
+- 未コミット変更がある場合、勝手に checkout せず影響有無を見て扱う
+- PR checkout は `gh pr checkout <PR番号>` を優先する
+- `gh` が使えない場合だけ fallback を使う
 
-* Check worktree safety
+fallback の例:
 
-  * Run `git status` and avoid destructive commands
-* Fetch and check out the PR branch locally
+```bash
+git fetch origin pull/<PR番号>/head
+git switch -C pr-<PR番号> FETCH_HEAD
+```
 
-  * `git fetch origin pull/<PR>/head:pr-<PR>`
-  * `git checkout pr-<PR>`
-* If the branch already exists locally, only run `git checkout`
+既に `pr-<PR番号>` が存在しても、そのまま再利用しない。レビュー直前に必ず最新 head を fetch し直す。
 
----
+### 3. PR metadata と review scope を取る
 
-### 3) Identify review scope
+まず PR metadata を取る。
 
-* List changed files
+```bash
+gh pr view <PR番号> --json url,title,baseRefName,headRefName,headRefOid,files
+```
 
-  * `git diff --name-only origin/<base>...HEAD`
-  * If base is unknown, use PR information or `git show --name-only`
-* Focus the review on design documents (e.g. feature, fix, architecture docs)
-* Include related image assets under `img/` or equivalent directories
+確認する項目:
 
----
+- base branch
+- head SHA (`headRefOid`)
+- changed files 一覧
+- 設計書以外に画像や template 関連ファイルが含まれているか
 
-### 4) Load repo-specific guidance
+changed files の把握は次の優先順で行う。
 
-* Read and follow the repository guidelines:
+1. `gh pr view --json files`
+2. `gh pr diff --name-only <PR番号>`
+3. `git diff --name-only origin/<baseRefName>...HEAD`
 
-  * `AGENTS.md`
-  * `CLAUDE.md`
-* Verify the correct template from `docs/onboarding/` is used for the document type
+`git show --name-only` は最後の commit しか見えないため使わない。
 
----
+### 4. repo 固有ルールと template を読む
 
-### 5) Format compliance checks (MUST)
+最低限次を読む。
 
-* Section structure, headings, and numbering match the template
-* No empty sections or leftover placeholders
-* Correct file placement and naming (as defined by the repo)
-* Image paths are valid and images are placed under the appropriate image directory
+- `AGENTS.md`
+- `CLAUDE.md` があればそれも読む
+- `docs/onboarding/` 配下の対応 template
 
----
+確認すること:
 
-### 6) Content quality checks
+- 文書種別ごとの template
+- file path / naming rule
+- 必須 section
+- 日本語/英語の運用
 
-#### General principles
+### 5. 補助コンテキストを必要最小限で集める
 
-* The design document must be **understandable without reading the code**
-* The role of a design document is not to explain implementation details, but to **share intent, mechanism, and rationale**
+- 設計書本体を起点に、設計妥当性の確認に必要な情報だけ追加で読む
+- まず PR 本文、`AGENTS.md`、設計書本文中の参照先から当たりを付ける
+- Notion の要件定義書 / 仕様書や Figma が示されていることが多いが、常に読む前提にしない
+- 仕様差分や画面要件の確認が必要なときだけ、該当 section や該当 frame に絞って読む
+- 画像参照がある場合は `img/` などの関連 asset も含める
 
----
+関連実装を読むルール:
 
-#### Basic Design
+- 設計妥当性の判断に必要なら、関連する実装 repo を読む
+- 基本的には `develop` または `main` を最新化した状態で読む
+- stale な local branch のまま根拠にしない
 
-* What / Why / Purpose are clearly explained
-* Background, problems, and assumptions are written in plain language
-* Interfaces and design philosophy are described without code dependency
-* The document does not dive into implementation details
+更新の目安:
 
----
+```bash
+git fetch origin
+git switch develop && git pull --ff-only
+# develop が無い repo は main を使う
+```
 
-#### Detail Design
+`dx-kpiee` / `zelda-kpiee` の connector 設計では、必要に応じて `atlas-kpiee` と `atlas-core` も確認する。
 
-* The document explains *How*, where *How* means:
+- repo path は `ghq` で探す
+- connector 境界、共通基盤、schema / API 契約の置き場所を優先して読む
+- 設計判断に関係しない広い探索はしない
 
-  * mechanisms
-  * responsibility boundaries
-  * data flow
-  * invariants
-* *How* does **not** mean step-by-step implementation or control flow
-* The design is understandable assuming the reader does not open the codebase
-* Explanations are not tightly coupled to specific code structures
-* There are no large code blocks or full source listings
+例:
 
-  * **Excessive code usage is a MUST-level issue**
-  * If snippets exist, they are minimal and only clarify intent or behavior
-* If the document reads like a code dump, treat it as a **MUST violation** and request a language-based explanation of intent, mechanism, and rationale
+```bash
+ghq list -p | rg '/(atlas-kpiee|atlas-core)$'
+```
 
----
+### 6. 2 ステップでレビューする
 
-#### Design decisions & quality
+#### Step 1. 文書品質レビュー
 
-* Major design decisions include explicit rationale:
+書き方、文章構成、template 準拠、説明の分かりやすさを見る。ここではまず「文書として読めるか」を判定する。
 
-  * Why this responsibility split?
-  * Why this data model?
-  * Why this failure behavior?
-* The document focuses on elements that survive refactoring:
+次は MUST 観点で確認する。
 
-  * invariants
-  * contracts (APIs, schemas, events)
-  * boundaries (responsibility, transaction, ownership)
-* The document avoids over-specifying volatile details (variable names, internal helpers, UI minutiae)
+- section structure, heading, numbering が template と一致しているか
+- empty section や placeholder が残っていないか
+- file placement / naming が正しいか
+- image path が正しいか
+- 画像ファイルが適切な配置にあるか
+- コードを読まなくても目的と仕組みが理解できるか
+- 背景、前提、非目的が言語化されているか
+- 重要な判断に理由があるか
+- failure / retry / re-execution 時の扱いが説明されているか
 
----
+#### Step 2. 設計妥当性レビュー
 
-#### Clarity & expression
+関連する実装、仕様、必要な外部資料を読んだうえで、設計として成立しているかを見る。文書品質が通っていても、ここで設計の抜けや矛盾があれば別途指摘する。
 
-* Avoid vague phrases such as "handle", "validate", or "serialize" without specifics
-* Domain terms and assumptions are explained
-* Auto-generated files or regeneration commands are excluded unless essential to design intent
+確認観点:
 
----
+- 既存仕様や関連実装と矛盾していないか
+- 責務分割、境界、data flow、failure behavior が現実のシステム構造に照らして妥当か
+- 既存の API / schema / event / transaction 境界と噛み合っているか
+- 再実行、冪等性、 rollback / retry の扱いが既存の前提に沿っているか
+- 必要な参照元を読まずに推測で評価していないか
 
-#### Questions the reviewer should be able to answer
+#### 基本設計
 
-After reading the design document, the reviewer should be able to answer **without reading code**:
+- What / Why / Purpose が明確か
+- 問題設定と背景が平易に説明されているか
+- 実装詳細に寄りすぎていないか
 
-* What problem is being solved?
-* What is guaranteed (invariants)?
-* Where are the boundaries?
-* What happens on failure or re-execution?
+#### 詳細設計
 
-If these cannot be answered, request revisions.
+- `How` を、処理手順ではなく仕組み・責務境界・データの流れ・不変条件として説明しているか
+- 特定の class 名、helper 名、変数名に説明が依存しすぎていないか
+- 大きい code block や source dump が無いか
+- snippet が必要な場合も、意図を補助する最小限に留まっているか
 
----
+次の問いにコードを開かず答えられなければ、説明不足として戻す。
 
-### 7) Draft review comments (English or Japanese)
+- 何の問題を解くのか
+- 何が保証されるのか
+- どこで責務が分かれるのか
+- 失敗時と再実行時にどうなるのか
 
-* Use inline comments for concrete issues when possible
-* Add a short summary comment for overall feedback and positives
-* Classify feedback severity:
+`skills/review-design-doc/references/detail-design-bad-good-samples.md` は、詳細設計が実装メモに崩れていないかを見る基準として必要時だけ読む。
 
-  * **MUST**: template violations, missing required sections, contradictions, **excessive or code-dependent explanations**
-  * **SHOULD**: missing rationale, weak explanations, clarity issues
-  * **QUESTION**: areas requiring clarification
+### 7. 指摘を整理する
 
----
+severity は次で分ける。
 
-### 8) Post the review on GitHub
+- MUST: template 違反、必須 section 欠落、内容の矛盾、コード依存の説明、大きすぎる code block
+- SHOULD: 理由不足、境界説明不足、曖昧表現、読み手前提の飛躍
+- QUESTION: 意図確認や前提確認が必要な箇所
 
-* Create a pending GitHub review and add inline comments
-* Select the review event based on severity:
+コメント方針:
 
-  * MUST issues: `REQUEST_CHANGES`
-  * SHOULD / QUESTION only: `COMMENT`
+- concrete issue は inline comment を優先する
+- PR 全体の評価、良い点、inline に載らない指摘は summary comment にまとめる
+- レビューコメントは原則日本語で書く
+- ユーザーが明示的に別言語を求めたときだけ、その言語に合わせる
 
----
+summary comment では、次を分けて書く。
 
-### 9) Report back to the user
+- 文書品質レビューでの総評
+- 設計妥当性レビューでの総評
+- 今回読んだ関連資料と、読んでいないもの
 
-* Provide a concise summary of what was reviewed and key findings
-* Ask follow-up questions if needed
+### 8. GitHub に inline review を投稿する
 
----
+inline review を promised workflow にするので、ここは手順を固定する。
+
+1. `gh pr view <PR番号> --json headRefOid` で `commit_id` を取る
+2. `gh pr diff <PR番号> --patch` で、指摘したい file と line が diff 上の changed line か確認する
+3. diff 上に存在する指摘だけを inline comment にする
+4. payload を JSON file にして `gh api` で review を作成する
+
+review payload の例:
+
+```json
+{
+  "commit_id": "<HEAD_SHA>",
+  "event": "REQUEST_CHANGES",
+  "body": "詳細は inline comment を参照してください。",
+  "comments": [
+    {
+      "path": "feature/foo/bar/detail_design.md",
+      "line": 42,
+      "side": "RIGHT",
+      "body": "MUST: この節だけだと再実行時の振る舞いが読み取れないため、冪等性の扱いを文章で明記してください。"
+    }
+  ]
+}
+```
+
+送信例:
+
+```bash
+gh api \
+  repos/<owner>/<repo>/pulls/<PR番号>/reviews \
+  -X POST \
+  --input review.json
+```
+
+運用ルール:
+
+- inline comment は changed line に限定する
+- diff に存在しない論点を無理に inline 化しない
+- diff に載らない指摘は summary comment に回す
+- MUST が 1 件でもあれば `REQUEST_CHANGES`
+- SHOULD / QUESTION のみなら `COMMENT`
+
+### 9. ユーザーへ報告する
+
+- 何をレビューしたか
+- 文書品質レビューと設計妥当性レビューをどう進めたか
+- 読んだ関連 repo / Notion / Figma が何か
+- MUST / SHOULD / QUESTION の件数
+- 代表的な指摘
+- GitHub へ投稿したか、下書き止まりか
+
+必要なら follow-up を短く添える。
 
 ## Notes
 
-* Focus on design document quality and clarity; do not introduce new requirements
-* If local files differ from the PR view, re-fetch and verify
-* Refer to Bad/Good examples:
-
-  * `skills/review-design-doc/references/detail-design-bad-good-samples.md`
+- local checkout と PR 画面で差があるときは、もう一度 fetch し直して確認する
+- 設計書レビューでは、新しい仕様提案より既存記述の不足・矛盾・分かりにくさを優先して指摘する
+- 実装レビュー用の観点が主題なら `pr-architecture-review` を使い分ける
+- Notion / Figma / 関連 repo は「必要になった理由」を言語化できるときだけ開く
