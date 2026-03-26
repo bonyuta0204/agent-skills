@@ -34,6 +34,7 @@ Pick only the tools that match the signal you already have:
 - Choose the minimum toolset needed for the question at hand.
 - Treat reference data as hints. Re-confirm live targets when the choice matters.
 - Keep everything read-only by default.
+- Exception: when the user explicitly asks to start or stop a non-production env, prefer the bastion-hosted infra scripts under `/opt/work/infra/script/<env>/...` instead of hand-assembling `aws ecs update-service` or `aws rds start-db-instance` calls.
 - Report evidence with exact UTC timestamps.
 
 ## Preflight
@@ -71,6 +72,43 @@ Typical target types:
 - CloudWatch log group
 - RDS instance identifier or DB host route
 - Snowflake DB/schema naming pattern
+
+If the case is an atlas-core data connector incident and you need to recover the owning board or asset from a dbt model name, read the `DB Route Quick Map` section in `references/kpiee-stg-reference.md` before querying databases.
+
+## Tool: Bastion-hosted Env Start/Stop
+
+Use this when the user explicitly asks to boot or stop `it`, `stg`, `stg01`, or `stg02`.
+
+Default path:
+
+- use SSM against the shared non-prod bastion `kpiee-infra-dev`
+- inspect `/opt/work/infra/script/<env>/ecs/` and `/opt/work/infra/script/<env>/rds/`
+- prefer the checked-in scripts there over reimplementing the operation locally
+
+Known script shape:
+
+- ECS: `/opt/work/infra/script/<env>/ecs/restart_ecs.sh`
+- ECS target list: `/opt/work/infra/script/<env>/ecs/target_service_lists.txt`
+- RDS: `/opt/work/infra/script/<env>/rds/restart_rds.sh`
+- RDS target list: `/opt/work/infra/script/<env>/rds/target_db_instance_lists.txt`
+
+Usage example:
+
+```bash
+export AWS_REGION=us-west-2
+
+aws ssm send-command \
+  --instance-ids i-05cb1b41cda7e3806 \
+  --document-name AWS-RunShellScript \
+  --parameters commands='["set -euxo pipefail","/opt/work/infra/script/stg01/rds/restart_rds.sh","/opt/work/infra/script/stg01/ecs/restart_ecs.sh"]'
+```
+
+Verification after running:
+
+- `aws rds describe-db-instances --output json | jq -r '.DBInstances[] | [.DBInstanceIdentifier, .DBInstanceStatus] | @tsv' | rg '<env>|staging01|staging02'`
+- `aws ecs describe-services --cluster kpiee-<env> --services ...` to confirm `desiredCount` and `runningCount`
+
+For `stg01`, the current bastion scripts target the full atlas/dx/kpiee stack through the target-list files above, so use those lists as the source of truth before running.
 
 ## Tool: CloudWatch Logs Insights
 
@@ -219,6 +257,7 @@ MYSQL_PASSWORD="$DX_PASS" scripts/mysql_query_via_bastion_ssm.sh \
   --user "$DX_USER" \
   --sql-file /path/to/query.sql
 ```
+
 
 Notes:
 

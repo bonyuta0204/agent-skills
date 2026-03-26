@@ -17,6 +17,10 @@ Verification scope for the current contents:
   - ECS clusters and services
   - CloudWatch log groups
   - SSM parameter prefixes
+- Additional live checks on 2026-03-26:
+  - `atlas-core-stg01` ECS services and log groups
+  - `atlas_core_staging01` main DB on TiDB
+  - tenant DB resolution for atlas-core via `db_connections`
 - Repo sources checked on 2026-03-07:
   - `f-scratch/zelda-kpiee`
   - `f-scratch/dx-kpiee`
@@ -49,6 +53,7 @@ Use this before deciding which host parameters and port to use.
 | target | host params | auth params | port | DB family | typical purpose |
 | --- | --- | --- | ---: | --- | --- |
 | `dx-kpiee` app DB | `/dx-kpiee-{env}/db-host` | `/dx-kpiee-{env}/db-username`, `/dx-kpiee-{env}/db-password` | 4000 | TiDB | account DBs like `{env}_dx_kpiee_0001`, direct checks on `data_files` and `reports` |
+| `atlas-core` main DB | `/dx-kpiee-{env}/db-host` | `/dx-kpiee-{env}/db-username`, `/dx-kpiee-{env}/db-password` | 4000 | TiDB | `atlas_core_*` and `db_connections` lookup for tenant DB resolution |
 | `kpiee` read DB | `/kpiee-{env}/db-read-host` | `/kpiee-{env}/db-read-username`, `/kpiee-{env}/db-read-password` | 3306 | MySQL/RDS | `zelda_kpiee_*` lookup such as `workspaces.name` or `workspace_users` |
 
 Cross-check the logical DB names from taskdefs when you need them:
@@ -59,6 +64,43 @@ Cross-check the logical DB names from taskdefs when you need them:
 | `stg` | `dx_kpiee_staging` | `zelda_kpiee_staging` |
 | `stg01` | `dx_kpiee_staging01` | `zelda_kpiee_staging01` |
 | `stg02` | `dx_kpiee_staging02` | `zelda_kpiee_staging02` |
+
+Atlas-core main DB names:
+
+| env | atlas-core main DB |
+| --- | --- |
+| `it` | `atlas_core_integration` |
+| `stg` | `atlas_core_staging` |
+| `stg01` | `atlas_core_staging01` |
+
+Atlas-core data connector board / asset lookup:
+
+1. Use `/ecs/atlas-core-{env}-workflow` logs to map dbt model to `job_id`, `account_id`, `target_type=DataBoard`, and `target_id`.
+2. Query the atlas-core main DB `db_connections` table to resolve the tenant DB from `account_id`.
+3. Query the tenant DB `data_boards` and `assets` tables.
+
+Typical SQL:
+
+```sql
+SELECT account_id, host, port, `database`
+FROM db_connections
+WHERE account_id = <account_id>;
+```
+
+```sql
+SELECT id, name, status
+FROM data_boards
+WHERE id = <data_board_id>;
+```
+
+```sql
+SELECT id, name, asset_type, status, data_board_id
+FROM assets
+WHERE data_board_id = <data_board_id>
+ORDER BY id;
+```
+
+Do not start by guessing tenant DB names or by searching unrelated `kpiee` databases.
 
 ## zelda-kpiee
 
@@ -207,34 +249,23 @@ Repo files worth opening first:
 - `backend/go/deploy/taskdef/dx-kpiee-stg01-go-report-tabulate.json`
 - `backend/go/deploy/taskdef/dx-kpiee-stg02-go-report-tabulate.json`
 
-## atlas-kpiee and atlas-core
+## atlas-kpiee
 
-Source repos:
+Source repo: `f-scratch/atlas-kpiee` (resolve locally with `ghq list -p`)
 
-- `f-scratch/atlas-kpiee`
-- `f-scratch/atlas-core`
+Current live scope is `it`, `stg`, and `stg01`.
+`stg02` should still be treated as needs-confirmation unless the current investigation proves otherwise.
 
-Live AWS resources confirmed on 2026-03-07:
-
-- `it`
-- `stg`
-
-Current atlas live scope is `it` and `stg`.
-Treat `stg01` and `stg02` as future expansion targets until their AWS resources actually exist.
-Repo definitions for `stg01` are already present in some taskdefs, but live AWS services/log groups/SSM parameters for `atlas-*stg01*` were not confirmed on 2026-03-07.
-
-### atlas-kpiee
-
-AWS-confirmed services for `it` and `stg`:
+AWS-confirmed services for `it`, `stg`, and `stg01`:
 
 - `atlas-kpiee-{env}-rails`
 
-AWS-confirmed CloudWatch log groups for `it` and `stg`:
+AWS-confirmed CloudWatch log groups for `it`, `stg`, and `stg01`:
 
 - `/ecs/atlas-kpiee-{env}`
 - `/ecs/atlas-kpiee-{env}-migration`
 
-Confirmed SSM parameter prefixes for `it` and `stg`:
+Confirmed SSM parameter prefixes for `it`, `stg`, and `stg01`:
 
 - `/atlas-kpiee-{env}/db-host`
 - `/atlas-kpiee-{env}/db-password`
@@ -258,9 +289,14 @@ Repo files worth opening first:
 - `backend/deploy/taskdef/atlas-kpiee-stg-rails-migration.json`
 - `backend/deploy/taskdef/atlas-kpiee-stg01-rails-migration.json`
 
-### atlas-core
+## atlas-core
 
-AWS-confirmed services for `it` and `stg`:
+Source repo: `f-scratch/atlas-core` (resolve locally with `ghq list -p`)
+
+Current live scope is `it`, `stg`, and `stg01`.
+`stg02` should still be treated as needs-confirmation unless the current investigation proves otherwise.
+
+AWS-confirmed services for `it`, `stg`, and `stg01`:
 
 - `atlas-core-{env}-rails`
 - `atlas-core-{env}-provisioning`
@@ -268,7 +304,7 @@ AWS-confirmed services for `it` and `stg`:
 - `atlas-core-{env}-sfonline`
 - `atlas-core-{env}-workflow`
 
-AWS-confirmed CloudWatch log groups for `it` and `stg`:
+AWS-confirmed CloudWatch log groups for `it`, `stg`, and `stg01`:
 
 - `/ecs/atlas-core-{env}`
 - `/ecs/atlas-core-{env}-migration`
@@ -277,7 +313,7 @@ AWS-confirmed CloudWatch log groups for `it` and `stg`:
 - `/ecs/atlas-core-{env}-sfonline`
 - `/ecs/atlas-core-{env}-workflow`
 
-Confirmed SSM parameter prefixes for `it` and `stg`:
+Confirmed SSM parameter prefixes for `it`, `stg`, and `stg01`:
 
 - `/atlas-core-{env}/db-host`
 - `/atlas-core-{env}/db-password`
@@ -302,22 +338,26 @@ Repo files worth opening first:
 - `rails/config/settings/staging.yml`
 - `.ansible/config/database.yml.j2`
 - `CLAUDE.md`
-- `atlas-kpiee` repo taskdefs:
-  - `backend/deploy/taskdef/atlas-core-it-rails.json`
-  - `backend/deploy/taskdef/atlas-core-it-provisioning.json`
-  - `backend/deploy/taskdef/atlas-core-it-scheduler.json`
-  - `backend/deploy/taskdef/atlas-core-it-sfonline.json`
-  - `backend/deploy/taskdef/atlas-core-it-workflow.json`
-  - `backend/deploy/taskdef/atlas-core-stg-rails.json`
-  - `backend/deploy/taskdef/atlas-core-stg-provisioning.json`
-  - `backend/deploy/taskdef/atlas-core-stg-scheduler.json`
-  - `backend/deploy/taskdef/atlas-core-stg-sfonline.json`
-  - `backend/deploy/taskdef/atlas-core-stg-workflow.json`
-  - future expansion / repo-only as of 2026-03-07:
-    - `backend/deploy/taskdef/atlas-core-stg01-rails.json`
-    - `backend/deploy/taskdef/atlas-core-stg01-scheduler.json`
-    - `backend/deploy/taskdef/atlas-core-stg01-sfonline.json`
-    - `backend/deploy/taskdef/atlas-core-stg01-workflow.json`
+- `backend/deploy/taskdef/atlas-core-it-rails.json`
+- `backend/deploy/taskdef/atlas-core-it-provisioning.json`
+- `backend/deploy/taskdef/atlas-core-it-scheduler.json`
+- `backend/deploy/taskdef/atlas-core-it-sfonline.json`
+- `backend/deploy/taskdef/atlas-core-it-workflow.json`
+- `backend/deploy/taskdef/atlas-core-stg-rails.json`
+- `backend/deploy/taskdef/atlas-core-stg-provisioning.json`
+- `backend/deploy/taskdef/atlas-core-stg-scheduler.json`
+- `backend/deploy/taskdef/atlas-core-stg-sfonline.json`
+- `backend/deploy/taskdef/atlas-core-stg-workflow.json`
+- `backend/deploy/taskdef/atlas-core-stg01-rails.json`
+- `backend/deploy/taskdef/atlas-core-stg01-provisioning.json`
+- `backend/deploy/taskdef/atlas-core-stg01-scheduler.json`
+- `backend/deploy/taskdef/atlas-core-stg01-sfonline.json`
+- `backend/deploy/taskdef/atlas-core-stg01-workflow.json`
+
+Important note:
+
+- A Snowflake/dbt model name such as `DC_CLEANSING_0005` is not enough by itself to derive the DataBoard name.
+- You usually need workflow logs first, because the same investigation needs both `account_id` and `target_id`.
 
 ## Snowflake Reference
 

@@ -77,7 +77,7 @@ make unlink SKILL=create-design-doc
 | [`kpiee-bastion-ops`](skills/kpiee-bastion-ops/SKILL.md) | kpiee の non-prod 環境で、共有 bastion 優先の踏み台ルーティングに従って日常的な確認作業を安全に進める。 |
 | [`kpiee-pm-ops`](skills/kpiee-pm-ops/SKILL.md) | PM+Ops orchestrator for kpiee delivery: architecture-aware task decomposition, issue/PR operations, CI/deploy execution, and release reporting via sub-agents. |
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
-| [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with reusable logs/ECS/DB/Snowflake tools, DB route references, and a helper for cross-account table row counts. |
+| [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with reusable logs/ECS/DB/Snowflake tools, bastion-hosted env start/stop guidance, and DB route references including atlas-core tenant DB lookup. |
 | [`pr-architecture-review`](skills/pr-architecture-review/SKILL.md) | GitHub PR をローカル checkout して、コードの構成・style だけでなく PR本文の説明品質までレビューする。 |
 | [`review-design-doc`](skills/review-design-doc/SKILL.md) | GitHub PR 上の kpiee-designs 設計書を、文書品質と設計妥当性の 2 ステップでレビューし、日本語の inline review と総評を返す。 |
 
