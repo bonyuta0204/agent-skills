@@ -14,6 +14,7 @@ options:
   --port <port>                   DB port (default: 3306)
   --database <name>               Database name
   --user <name>                   MySQL user (optional)
+  --password <value>              MySQL password (prefer MYSQL_PASSWORD env)
   --bastion-instance <instance>   SSM-managed EC2 instance ID
   --discover-bastion              Force heuristic bastion discovery first
   --defaults-file <path>          MySQL defaults file path on bastion
@@ -23,7 +24,7 @@ options:
 
 env fallbacks:
   AWS_REGION, RDS_INSTANCE_ID, MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE,
-  MYSQL_USER, BASTION_INSTANCE_ID, MYSQL_DEFAULTS_FILE
+  MYSQL_USER, MYSQL_PASSWORD, BASTION_INSTANCE_ID, MYSQL_DEFAULTS_FILE
 USAGE
 }
 
@@ -140,18 +141,28 @@ run_ssm_mysql_query() {
   local mysql_port="$4"
   local mysql_database="$5"
   local mysql_user="$6"
-  local mysql_defaults_file="$7"
-  local sql_arg="$8"
+  local mysql_password="$7"
+  local mysql_defaults_file="$8"
+  local sql_arg="$9"
 
   local sql_b64 sql_b64_esc host_esc port_esc db_esc mysql_cmd remote_cmd payload command_id invocation_json
+  local password_b64="" password_b64_esc="" use_temp_defaults=0
   sql_b64="$(printf '%s' "$sql_arg" | base64 | tr -d '\n')"
   sql_b64_esc="$(printf '%q' "$sql_b64")"
   host_esc="$(printf '%q' "$mysql_host")"
   port_esc="$(printf '%q' "$mysql_port")"
   db_esc="$(printf '%q' "$mysql_database")"
 
+  if [[ -n "$mysql_password" && -z "$mysql_defaults_file" ]]; then
+    password_b64="$(printf '%s' "$mysql_password" | base64 | tr -d '\n')"
+    password_b64_esc="$(printf '%q' "$password_b64")"
+    use_temp_defaults=1
+  fi
+
   mysql_cmd="mysql"
-  if [[ -n "$mysql_defaults_file" ]]; then
+  if [[ "$use_temp_defaults" -eq 1 ]]; then
+    mysql_cmd+=" --defaults-extra-file=\"\$tmp_defaults\""
+  elif [[ -n "$mysql_defaults_file" ]]; then
     local defaults_esc
     defaults_esc="$(printf '%q' "$mysql_defaults_file")"
     mysql_cmd+=" --defaults-extra-file=${defaults_esc}"
@@ -165,7 +176,13 @@ run_ssm_mysql_query() {
   fi
   mysql_cmd+=" ${db_esc}"
 
-  remote_cmd="set -euo pipefail; tmp_sql=\$(mktemp /tmp/codex-mysql-XXXXXX.sql); trap 'rm -f \"\$tmp_sql\"' EXIT; printf %s ${sql_b64_esc} | base64 -d > \"\$tmp_sql\"; ${mysql_cmd} < \"\$tmp_sql\""
+  remote_cmd="set -euo pipefail; tmp_sql=\$(mktemp /tmp/codex-mysql-XXXXXX.sql);"
+  if [[ "$use_temp_defaults" -eq 1 ]]; then
+    remote_cmd+=" tmp_defaults=\$(mktemp /tmp/codex-mysql-XXXXXX.cnf); trap 'rm -f \"\$tmp_sql\" \"\$tmp_defaults\"' EXIT; chmod 600 \"\$tmp_defaults\"; { printf '[client]\\n'; printf 'password='; printf %s ${password_b64_esc} | base64 -d; printf '\\n'; } > \"\$tmp_defaults\";"
+  else
+    remote_cmd+=" trap 'rm -f \"\$tmp_sql\"' EXIT;"
+  fi
+  remote_cmd+=" printf %s ${sql_b64_esc} | base64 -d > \"\$tmp_sql\"; ${mysql_cmd} < \"\$tmp_sql\""
   payload="$(jq -cn --arg cmd "$remote_cmd" '{commands: [$cmd]}')"
 
   if ! command_id="$(aws ssm send-command \
@@ -223,6 +240,7 @@ mysql_host="${MYSQL_HOST:-}"
 mysql_port="${MYSQL_PORT:-3306}"
 mysql_database="${MYSQL_DATABASE:-}"
 mysql_user="${MYSQL_USER:-}"
+mysql_password="${MYSQL_PASSWORD:-}"
 bastion_instance="${BASTION_INSTANCE_ID:-}"
 mysql_defaults_file="${MYSQL_DEFAULTS_FILE:-}"
 force=0
@@ -257,6 +275,10 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --user)
       mysql_user="${2:-}"
+      shift 2
+      ;;
+    --password)
+      mysql_password="${2:-}"
       shift 2
       ;;
     --bastion-instance)
@@ -364,6 +386,7 @@ result_json="$(run_ssm_mysql_query \
   "$mysql_port" \
   "$mysql_database" \
   "$mysql_user" \
+  "$mysql_password" \
   "$mysql_defaults_file" \
   "$sql_arg")"
 
@@ -385,6 +408,7 @@ if [[ "$status" != "Success" && "$selected_route" == "default:${DEFAULT_BASTION_
       "$mysql_port" \
       "$mysql_database" \
       "$mysql_user" \
+      "$mysql_password" \
       "$mysql_defaults_file" \
       "$sql_arg")"
     status="$(echo "$result_json" | jq -r '.status')"
