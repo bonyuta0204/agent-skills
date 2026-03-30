@@ -9,6 +9,8 @@ IP 制限の不具合を「ヘッダ解釈の問題」「DB seed 不足」「ユ
 IP 制限は DB レコードが空だと何も起きない実装がある。
 seed を確認せずに「通った」「落ちた」を結論にしない。
 
+前提の確認は `data-prerequisites.md` を先に見る。
+
 ## 1. Identify The Path
 
 まず、どの経路の制御かを決める。
@@ -25,6 +27,7 @@ seed を確認せずに「通った」「落ちた」を結論にしない。
 - workspace 側の制限有効フラグ
 - daX whitelist の有無
 - permitted IP の有無
+- 対象ユーザーが daX か general か
 
 `Exists == false` で制限しない実装は珍しくない。
 空のままでは再現条件になっていない可能性がある。
@@ -60,7 +63,7 @@ curl -s -o /tmp/port.out -w '%{http_code}\n' \
 - IPv4 / IPv6 の両方を正規化しているか
 - header が無いときに `RemoteAddr` fallback になるか
 
-## 5. Check The Seed, Not Only The Code
+## 5. Check The Data, Not Only The Code
 
 ローカル DB が空だと、コードが正しくても制御は見えない。
 
@@ -69,6 +72,7 @@ curl -s -o /tmp/port.out -w '%{http_code}\n' \
 - whitelist / permitted IP レコード件数
 - 比較対象の IP 文字列
 - workspace 側の有効化フラグ
+- 対象ユーザー種別
 
 ## 6. Logs To Capture
 
