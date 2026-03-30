@@ -75,7 +75,7 @@ make unlink SKILL=create-design-doc
 | [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake/triage with worker-based primary investigation, PM-owned duplicate handling, resumable state tracking, and controlled `AI_STOCKTAKE` body/label updates. |
 | [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | 自分に assign / review request された PR を棚卸しし、レビュー順・pass-through・重点論点を整理した sticky review comment を更新する。 |
 | [`kpiee-bastion-ops`](skills/kpiee-bastion-ops/SKILL.md) | kpiee の non-prod 環境で、共有 bastion 優先の踏み台ルーティングに従って日常的な確認作業を安全に進める。 |
-| [`kpiee-local-smoke-check`](skills/kpiee-local-smoke-check/SKILL.md) | kpiee の localhost 動作確認で、ghq repo / review worktree、`.env.local`、schema drift、認証、DB seed、IP 制限の切り分けを短時間で進める。 |
+| [`kpiee-local-smoke-check`](skills/kpiee-local-smoke-check/SKILL.md) | kpiee の localhost 動作確認で、runtime ownership、`.env.local`、schema drift、auth、DB seed、HTTP 最小再現を切り分ける toolkit。 |
 | [`kpiee-pm-ops`](skills/kpiee-pm-ops/SKILL.md) | PM+Ops orchestrator for kpiee delivery: architecture-aware task decomposition, issue/PR operations, CI/deploy execution, and release reporting via sub-agents. |
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
 | [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with reusable logs/ECS/DB/Snowflake tools, bastion-hosted env start/stop guidance, and DB route references including atlas-core tenant DB lookup. |
