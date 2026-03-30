@@ -3,6 +3,20 @@ SHELL := /bin/bash
 CODEX_HOME  ?= $(HOME)/.codex
 CLAUDE_HOME ?= $(HOME)/.claude
 SKILLS_DIR  := $(CURDIR)/skills
+SKILL_NAMES := \
+	create-design-doc \
+	create-mermaid-diagram \
+	dx-kpiee-go-arch-review \
+	github-create-pr \
+	github-issue-stocktake \
+	github-pr-review-stocktake \
+	kpiee-bastion-ops \
+	kpiee-batch-fix-pm \
+	kpiee-pm-ops \
+	kpiee-stg-log-db-check \
+	pr-architecture-review \
+	review-design-doc \
+	slack-ng-to-issue
 
 # Destination directories for each tool
 CODEX_SKILLS  := $(CODEX_HOME)/skills
@@ -21,7 +35,7 @@ help:
 	@echo "  CLAUDE_HOME=~/.claude            Override Claude Code home directory"
 
 list:
-	@ls -1 "$(SKILLS_DIR)"
+	@printf '%s\n' $(SKILL_NAMES)
 
 # _link_one DEST SKILL – symlink a single skill into DEST/skills/SKILL
 define _link_one
@@ -37,8 +51,7 @@ link:
 		$(call _link_one,$(CLAUDE_SKILLS),$(SKILL)) \
 		echo "linked $(SKILL) -> codex + claude"; \
 	else \
-		for d in $(SKILLS_DIR)/*; do \
-			name=$$(basename "$$d"); \
+		for name in $(SKILL_NAMES); do \
 			$(call _link_one,$(CODEX_SKILLS),$$name) \
 			$(call _link_one,$(CLAUDE_SKILLS),$$name) \
 			echo "linked $$name -> codex + claude"; \
@@ -60,8 +73,7 @@ unlink:
 		$(call _unlink_one,$(CLAUDE_SKILLS),$(SKILL)) \
 		echo "unlinked $(SKILL) <- codex + claude"; \
 	else \
-		for d in $(SKILLS_DIR)/*; do \
-			name=$$(basename "$$d"); \
+		for name in $(SKILL_NAMES); do \
 			$(call _unlink_one,$(CODEX_SKILLS),$$name) \
 			$(call _unlink_one,$(CLAUDE_SKILLS),$$name) \
 			echo "unlinked $$name <- codex + claude"; \
