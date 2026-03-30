@@ -40,6 +40,7 @@ live scope は次の non-prod 環境です。
 - `scripts/preflight.sh`: ローカル依存と AWS 認証の確認
 - `scripts/list_bastion_candidates.sh`: 候補の見える化
 - `scripts/run_command_via_bastion_ssm.sh`: bastion 上で確認コマンドや script を実行
+- `scripts/start_env_via_bastion_ssm.sh`: `it|stg|stg01|stg02` を引数で受け、target list 確認、RDS 起動、ECS 起動、post-check までをまとめて実行
 - `references/kpiee-bastion-reference.md`: bastion 運用の前提と確認済み情報
 
 ## Operating Rules
@@ -194,6 +195,22 @@ RDS の restart script は target list にある各 DB instance に対して `aw
 3. RDS を起動する
 4. ECS を起動する
 5. 主要 service / DB が上がったかを確認する
+
+この一連の手順をまとめて流したいときは、専用 wrapper を使う。
+
+```bash
+scripts/start_env_via_bastion_ssm.sh stg
+scripts/start_env_via_bastion_ssm.sh stg01 --wait-seconds 1200
+```
+
+この wrapper は次を行う。
+
+- bastion 上の target list を表示
+- RDS は target list を読みつつ、read replica topology の instance を skip して、起動可能な DB だけを個別に start する
+- ECS は target list の各 service に `desired-count 1` を設定する
+- RDS / ECS の post-check を poll して、ready になるまで待つ
+
+`ssm:DescribeInstanceInformation` が制限される環境でも動かしやすいように、既定では共有 bastion の instance ID を明示指定する。
 
 ### Inspect the Target List First
 
