@@ -1,3 +1,4 @@
+---
 name: pr-implementation-review
 description: 単一の実装 PR をローカル checkout して、コードの構成・style・命名・PR本文の説明品質まで含めて広くレビューする skill。特定の設計観点に絞らず、repo ルールとの整合と変更全体の筋の良さを確認したいときに使う。
 ---
