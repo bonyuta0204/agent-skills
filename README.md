@@ -70,7 +70,7 @@ make unlink SKILL=create-design-doc
 | --- | --- |
 | [`create-design-doc`](skills/create-design-doc/SKILL.md) | Create kpiee design docs (basic or detail) in kpiee-designs using repo templates. |
 | [`create-mermaid-diagram`](skills/create-mermaid-diagram/SKILL.md) | Mermaid 図を壊れにくく作成・修正し、render 検証と syntax/style のチェックまで行う。 |
-| [`dx-kpiee-go-arch-review`](skills/dx-kpiee-go-arch-review/SKILL.md) | dx-kpiee の `backend/go` 変更を DDD / Clean Architecture / Onion Architecture の観点に絞ってレビューする。 |
+| [`code-architecture-review`](skills/code-architecture-review/SKILL.md) | 実装の細部よりも責務配置・依存方向・境界設計に注目して、コードや PR をアーキテクチャ観点でレビューする。 |
 | [`github-create-pr`](skills/github-create-pr/SKILL.md) | GitHub の Pull Request をレビューア向け説明で作成・更新し、repo 固有の preflight、template、milestone も扱う。 |
 | [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake/triage with worker-based primary investigation, PM-owned duplicate handling, resumable state tracking, and controlled `AI_STOCKTAKE` body/label updates. |
 | [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | 自分に assign / review request された PR を棚卸しし、レビュー順・pass-through・重点論点を整理した sticky review comment を更新する。 |
@@ -79,9 +79,27 @@ make unlink SKILL=create-design-doc
 | [`kpiee-pm-ops`](skills/kpiee-pm-ops/SKILL.md) | PM+Ops orchestrator for kpiee delivery: architecture-aware task decomposition, issue/PR operations, CI/deploy execution, and release reporting via sub-agents. |
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
 | [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with reusable logs/ECS/DB/Snowflake tools, bastion-hosted env start/stop guidance, and DB route references including atlas-core tenant DB lookup. |
-| [`pr-architecture-review`](skills/pr-architecture-review/SKILL.md) | GitHub PR をローカル checkout して、コードの構成・style だけでなく PR本文の説明品質までレビューする。 |
+| [`pr-implementation-review`](skills/pr-implementation-review/SKILL.md) | GitHub PR をローカル checkout して、コードの構成・style・PR本文の説明品質まで含めて広くレビューする。 |
 | [`review-design-doc`](skills/review-design-doc/SKILL.md) | GitHub PR 上の kpiee-designs 設計書を、文書品質と設計妥当性の 2 ステップでレビューし、日本語の inline review と総評を返す。 |
 | [`slack-ng-to-issue`](skills/slack-ng-to-issue/SKILL.md) | Slack `#kpiee_ng報告` の NG レポートを NG一覧ID 指定で取得し、GitHub Issue として起票する。 |
+
+## Review skills guide
+
+レビュー系 skill は似て見えるが、見る対象と返す成果物が違う。
+
+| Skill | 主対象 | 向いている依頼 | 主なアウトプット |
+| --- | --- | --- | --- |
+| [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | 複数 PR のレビュー待ちキュー | 自分の assigned / review requested PR を棚卸ししたい | PR ごとの sticky なレビュー導線コメント |
+| [`pr-implementation-review`](skills/pr-implementation-review/SKILL.md) | 単一 PR の実装 | 1 本の PR をローカル checkout して丁寧にレビューしたい | 実装・構成・PR 本文に対するレビュー指摘 |
+| [`code-architecture-review`](skills/code-architecture-review/SKILL.md) | 単一 PR や差分の構造 | コードレベルの細部より、責務配置・境界・依存方向を見たい | 実装アーキテクチャ観点のレビュー指摘 |
+| [`review-design-doc`](skills/review-design-doc/SKILL.md) | `kpiee-designs` の設計書 PR | 設計書の文書品質と設計妥当性を見たい | 設計書向け inline review と総評 |
+
+選び方の目安:
+
+- まずレビュー待ちの PR 群を整理したいなら `github-pr-review-stocktake`
+- 単一 PR の実装を広めに見るなら `pr-implementation-review`
+- コードレベルの細部より責務配置や境界を見たいなら `code-architecture-review`
+- 実装ではなく設計書をレビューするなら `review-design-doc`
 
 Skill-specific verification example:
 

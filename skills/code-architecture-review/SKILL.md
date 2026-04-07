@@ -1,13 +1,13 @@
 ---
-name: dx-kpiee-go-arch-review
-description: dx-kpiee の Go コードや PR を、domain model を中心に DDD / Clean Architecture / Onion Architecture の観点でレビューする skill。`backend/go` の変更に対して、業務概念の意味や判断が domain の内側で一貫しているか、struct / method の責務分解が自然か、集約境界や保存責務が外へ漏れていないか、移行都合や DTO / infra 都合が domain を汚していないかを確認したいときに使う。バグ一般の網羅レビューではなく、責務配置と境界の妥当性を評価したい場面に使う。
+name: code-architecture-review
+description: コードや PR を、責務配置・依存方向・境界設計の観点でレビューする skill。domain model / service / usecase / repository / adapter などの置き場所が自然か、移行都合や DTO / infra 都合が内側を汚していないかを確認したいときに使う。バグ一般の網羅レビューではなく、実装アーキテクチャの妥当性を評価したい場面に向く。
 ---
 
-# dx-kpiee Go Architecture Review
+# Code Architecture Review
 
 ## この skill の目的
 
-この skill は、`backend/go` の変更を **domain model を中心に責務配置の自然さでレビューする** ためのものである。
+この skill は、コードや PR の変更を **責務配置と境界設計の自然さでレビューする** ためのものである。
 
 最初に問うのは layer 違反ではない。まず問うのは以下。
 
@@ -24,11 +24,24 @@ layer や dependency の確認は重要だが、**domain の一貫性を壊し�
 * パフォーマンス一般のレビュー
 * 未変更箇所の全面リファクタ要求
 
+## この skill を使う場面
+
+- PR 全体の感想ではなく、責務配置や集約境界に論点を絞りたいとき
+- domain model / service / usecase / repository / adapter の置き方が自然かを見たいとき
+- usecase / repository / adapter の責務分担が自然かを評価したいとき
+
+次の場面では別 skill を優先する。
+
+- 単一 PR を repo ルール全体込みで広くレビューしたいときは `pr-implementation-review`
+- 設計書 PR をレビューしたいときは `review-design-doc`
+- 複数 PR のレビュー順や pass-through 箇所を先に整理したいときは `github-pr-review-stocktake`
+
 ---
 
 ## 対象スコープ
 
-* 対象は `backend/go` の変更に限定する
+* 対象は、domain / usecase / repository / adapter など責務境界が見える application code
+* 特に layered architecture、DDD、Clean Architecture、Onion Architecture のような構造を持つコードで有効
 * 主眼は以下
 
   * domain model への判断集約
@@ -45,17 +58,18 @@ layer や dependency の確認は重要だが、**domain の一貫性を壊し�
 レビュー開始時に、まず以下を読む。
 
 * `AGENTS.md`
-* `.windsurf/rules/go-arch.md`
-* `docs/go-layered-arch.md`
+* repo 内の architecture / layering / ADR / design rule 文書
 * `references/review-checklist.md`
 
-repo ルールと矛盾する一般論は優先しない。判断に迷う場合は `docs/go-layered-arch.md` の原則 ID を基準にする。
+repo ルールと矛盾する一般論は優先しない。repo 側に原則 ID や architecture 文書があれば、それを基準にする。
+
+`.windsurf/rules/go-arch.md` や `docs/go-layered-arch.md` のような repo 固有の設計文書がある場合は、必ず先に読む。
 
 ---
 
 ## 進め方
 
-1. レビュー対象を `backend/go` に限定する。
+1. レビュー対象のうち、責務境界が見える application code に focus する。
 2. 変更で増えた、または意味が変わった業務概念を特定する。
 3. その概念を `domain model -> domain service -> usecase -> repository -> adapter` の順に追う。
 4. 意味解釈、状態判断、組み立て、保存の都合がどこにあるかを整理する。
@@ -67,7 +81,7 @@ repo ルールと矛盾する一般論は優先しない。判断に迷う場合
 ### 近傍ファイルとして読む候補
 
 * 同じ aggregate を扱う model / service / repository / usecase
-* 同系統 endpoint の adapter
+* 同系統 entrypoint の adapter
 * 同責務の既存実装
 * repo 内で比較的良い実装例
 
@@ -143,7 +157,7 @@ repo ルールと矛盾する一般論は優先しない。判断に迷う場合
 
 * 集約内部の子要素の保存手順を usecase / service が知っていないか
 * repository interface が domain 語彙ではなく技術語彙ベースになっていないか
-* SQLBoiler model と domain model の変換が repository の外へ漏れていないか
+* ORM model と domain model の変換が repository の外へ漏れていないか
 * 「何を保存したいか」ではなく「どう保存するか」が usecase に漏れていないか
 
 ### 見方のポイント
@@ -183,7 +197,7 @@ usecase の役割は、順序制御と依存調停が中心である。
 
 また、transport / infra 都合について以下を見る。
 
-* ogen 生成型が Adapter の外へ漏れていないか
+* 生成された transport 型が Adapter の外へ漏れていないか
 * request / response DTO が usecase / domain に侵入していないか
 * ORM や DB 保存形式の事情を domain が知っていないか
 
@@ -197,9 +211,9 @@ usecase の役割は、順序制御と依存調停が中心である。
 * `Usecase -> Infrastructure` 直接依存を新規追加していないか
 * `Infrastructure -> Usecase` の逆依存がないか
 * `Adapter` が業務判断や集計条件を持っていないか
-* account 境界が `accountID` 引数の都度受け渡しに流れていないか
+* tenant / account / context 境界が毎回の引数受け渡しに流れていないか
 
-指摘時は、必要に応じて `docs/go-layered-arch.md` の原則 ID を付ける。
+指摘時は、必要に応じて repo 固有の原則 ID を付ける。
 
 ---
 
@@ -211,8 +225,8 @@ usecase の役割は、順序制御と依存調停が中心である。
 
 * Must 原則違反
 * 依存方向の逆転
-* DTO / ogen 型の layer 漏れ
-* account 境界の破壊
+* DTO / 生成 transport 型の layer 漏れ
+* tenant / account 境界の破壊
 * transaction boundary の破綻
 * domain / usecase / adapter に transport / infra 都合が強く漏れているもの
 

@@ -1,4 +1,6 @@
-# dx-kpiee Go Architecture Review Checklist
+# Code Architecture Review Checklist
+
+repo に architecture 原則 ID がある場合はそちらを優先する。以下の ID や具体例は、dx-kpiee 系 repo で使うときの代表例を含む。
 
 ## 優先順
 
@@ -37,7 +39,7 @@
 - `fetch -> branch -> mutate -> persist` の繰り返しに、domain として名前を持てる塊がないか
 - 「if が多い」ではなく、「domain が知るべき if を usecase が知っている」状態を指摘できているか
 
-## account 境界
+## tenant / account 境界
 
 - `P-DOM-06`: account 依存の service / factory は生成時に account を固定しているか
 - `AP-07`: 同一インスタンスのメソッドで `accountID` を都度受けていないか
@@ -50,7 +52,7 @@
 - `P-UC-04`: usecase 内で domain service や helper を inline 生成していないか
 - `AP-05`: sentinel error で正常系フローを分岐していないか
 
-## repo 固有メモ
+## dx-kpiee で使うときの補助メモ
 
 - [backend/go/internal/usecase/data_connector/post_hook_service.go](/Users/yuta.nakamura/workspace/github.com/f-scratch/dx-kpiee/backend/go/internal/usecase/data_connector/post_hook_service.go)
   - account 固定の良い参照例

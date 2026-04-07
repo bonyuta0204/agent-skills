@@ -28,6 +28,13 @@ kpiee-designs の設計書 PR をレビューする skill。
 - diff 上に乗らない指摘は summary comment に寄せる
 - 新しい要求を足すのではなく、設計書として必要な説明の不足や矛盾を指摘する
 
+## 他の review skill との使い分け
+
+- この skill は `kpiee-designs` の設計書 PR 専用
+- 実装 PR のレビューなら `pr-implementation-review`
+- 責務配置や境界設計を深掘りするなら `code-architecture-review`
+- 複数 PR のレビュー待ちキューを先に整理するなら `github-pr-review-stocktake`
+
 ## Workflow
 
 ### 1. 入力を確認する
@@ -258,5 +265,5 @@ gh api \
 
 - local checkout と PR 画面で差があるときは、もう一度 fetch し直して確認する
 - 設計書レビューでは、新しい仕様提案より既存記述の不足・矛盾・分かりにくさを優先して指摘する
-- 実装レビュー用の観点が主題なら `pr-architecture-review` を使い分ける
+- 実装レビュー用の観点が主題なら `pr-implementation-review` を使い分ける
 - Notion / Figma / 関連 repo は「必要になった理由」を言語化できるときだけ開く

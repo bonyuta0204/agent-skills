@@ -1,13 +1,26 @@
----
-name: pr-architecture-review
-description: Review pull requests with emphasis on code formatting/style consistency, architecture adherence (clean/onion/DDD, layering rules), and PR description quality. Use when given a PR URL and asked to checkout locally, read repo docs (CLAUDE.md, AGENTS.md, .windsurf/rules, README, architecture docs), compare with similar files, and produce review feedback rather than bug hunting.
+name: pr-implementation-review
+description: 単一の実装 PR をローカル checkout して、コードの構成・style・命名・PR本文の説明品質まで含めて広くレビューする skill。特定の設計観点に絞らず、repo ルールとの整合と変更全体の筋の良さを確認したいときに使う。
 ---
 
-# PR Architecture Review
+# PR Implementation Review
 
 ## Overview
 
-Perform a local PR checkout, collect repository conventions, inspect diffs and adjacent code, review the PR title/body, and produce feedback focused on formatting/style, architecture alignment, and PR explanation quality.
+単一の実装 PR をローカル checkout し、repo の約束事と差分周辺の実装を読んだうえで、実装・構成・PR 本文の説明品質を広くレビューする。
+
+## この skill の境界
+
+この skill は、**単一 PR の実装レビューを広めに行うためのデフォルト入口** です。
+
+- 対象は実装 PR 全体。構成、layer 境界、style、命名、PR 本文の説明品質まで含めて見る
+- 返すものは、レビュー指摘または GitHub 投稿前のレビュー下書き
+- バグ一般の網羅レビューよりも、repo ルールとの整合と設計の筋の良さを優先する
+
+次の場面では別 skill を優先する。
+
+- レビュー待ち PR を複数本まとめて棚卸ししたいときは `github-pr-review-stocktake`
+- 責務配置、依存方向、境界設計を主題に見たいときは `code-architecture-review`
+- `kpiee-designs` の設計書 PR をレビューするときは `review-design-doc`
 
 ## Workflow
 

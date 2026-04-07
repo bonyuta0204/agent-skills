@@ -6,7 +6,7 @@ SKILLS_DIR  := $(CURDIR)/skills
 SKILL_NAMES := \
 	create-design-doc \
 	create-mermaid-diagram \
-	dx-kpiee-go-arch-review \
+	code-architecture-review \
 	github-create-pr \
 	github-issue-stocktake \
 	github-pr-review-stocktake \
@@ -15,7 +15,7 @@ SKILL_NAMES := \
 	kpiee-local-smoke-check \
 	kpiee-pm-ops \
 	kpiee-stg-log-db-check \
-	pr-architecture-review \
+	pr-implementation-review \
 	review-design-doc \
 	slack-ng-to-issue
 

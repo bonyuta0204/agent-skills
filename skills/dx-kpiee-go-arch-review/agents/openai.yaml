@@ -1,4 +1,0 @@
-interface:
-  display_name: "dx-kpiee Go Arch Review"
-  short_description: "Review dx-kpiee Go code for DDD/Clean Architecture"
-  default_prompt: "Use $dx-kpiee-go-arch-review to review a dx-kpiee Go diff or PR from DDD/Clean Architecture and repository-specific design perspectives."

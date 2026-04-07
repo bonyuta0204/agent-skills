@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Architecture Review"
+  short_description: "Review code structure, boundaries, and dependency direction"
+  default_prompt: "Use $code-architecture-review to review a diff or PR from code architecture perspectives such as responsibility placement, boundaries, dependency direction, and domain/application layering."

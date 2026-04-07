@@ -27,7 +27,9 @@ description: 自分にアサインまたは review request されている GitHu
 
 - 単一 PR に対して深掘りレビュー結果をそのまま GitHub review として投稿するとき
 - 実装修正や checkout ベースの詳細調査まで即座に進めるとき
-- 既存の `pr-architecture-review` で 1 本の PR を丁寧にレビューしたいとき
+- 既存の `pr-implementation-review` で 1 本の PR を丁寧にレビューしたいとき
+- 責務配置や境界設計だけに論点を絞ってレビューしたいとき
+- `kpiee-designs` の設計書 PR をレビューしたいとき
 
 ## Goals
 
@@ -37,6 +39,13 @@ description: 自分にアサインまたは review request されている GitHu
 - レビュー箇所ごとに「臭い」「仕様確認寄り」「設計確認寄り」などの signal を付ける
 - PR ごとに sticky comment を更新し、後から見返せる状態にする
 - 全量または repo 指定で、assigned / review-requested PR をバッチ処理する
+
+## 他の review skill との関係
+
+- この skill はレビューの**前さばき**を担当する
+- 単一 PR を深掘りする段階に入ったら `pr-implementation-review` へ渡す
+- 責務配置、依存方向、境界設計が主論点なら `code-architecture-review` へ渡す
+- 設計書 PR なら `review-design-doc` を使う
 
 ## Non-Goals
 
