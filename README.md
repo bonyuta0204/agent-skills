@@ -69,9 +69,26 @@ make unlink SKILL=create-design-doc
 | Skill | Description |
 | --- | --- |
 | [`create-design-doc`](skills/create-design-doc/SKILL.md) | Create kpiee design docs (basic or detail) in kpiee-designs using repo templates. |
-| [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake with worker-based primary investigation, strict JSON validation, and controlled issue body/label updates. |
+| [`create-mermaid-diagram`](skills/create-mermaid-diagram/SKILL.md) | Mermaid 図を壊れにくく作成・修正し、render 検証と syntax/style のチェックまで行う。 |
+| [`dx-kpiee-go-arch-review`](skills/dx-kpiee-go-arch-review/SKILL.md) | dx-kpiee の `backend/go` 変更を DDD / Clean Architecture / Onion Architecture の観点に絞ってレビューする。 |
+| [`github-create-pr`](skills/github-create-pr/SKILL.md) | GitHub の Pull Request をレビューア向け説明で作成・更新し、repo 固有の preflight、template、milestone も扱う。 |
+| [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake/triage with worker-based primary investigation, PM-owned duplicate handling, resumable state tracking, and controlled `AI_STOCKTAKE` body/label updates. |
+| [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | 自分に assign / review request された PR を棚卸しし、レビュー順・pass-through・重点論点を整理した sticky review comment を更新する。 |
+| [`kpiee-bastion-ops`](skills/kpiee-bastion-ops/SKILL.md) | kpiee の non-prod 環境で、共有 bastion 優先の踏み台ルーティングに従って日常的な確認作業を安全に進め、`it/stg/stg01/stg02` の起動 wrapper も提供する。 |
+| [`kpiee-local-smoke-check`](skills/kpiee-local-smoke-check/SKILL.md) | kpiee の localhost 動作確認で、repo の役割、起動方法、log、認証付き API アクセス、DB 前提、HTTP 最小再現を一貫した runbook として扱う toolkit。 |
+| [`kpiee-pm-ops`](skills/kpiee-pm-ops/SKILL.md) | PM+Ops orchestrator for kpiee delivery: architecture-aware task decomposition, issue/PR operations, CI/deploy execution, and release reporting via sub-agents. |
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
-| [`review-design-doc`](skills/review-design-doc/SKILL.md) | Review kpiee-designs design docs in GitHub pull requests. |
+| [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with reusable logs/ECS/DB/Snowflake tools, bastion-hosted env start/stop guidance, and DB route references including atlas-core tenant DB lookup. |
+| [`pr-architecture-review`](skills/pr-architecture-review/SKILL.md) | GitHub PR をローカル checkout して、コードの構成・style だけでなく PR本文の説明品質までレビューする。 |
+| [`review-design-doc`](skills/review-design-doc/SKILL.md) | GitHub PR 上の kpiee-designs 設計書を、文書品質と設計妥当性の 2 ステップでレビューし、日本語の inline review と総評を返す。 |
+| [`slack-ng-to-issue`](skills/slack-ng-to-issue/SKILL.md) | Slack `#kpiee_ng報告` の NG レポートを NG一覧ID 指定で取得し、GitHub Issue として起票する。 |
+
+Skill-specific verification example:
+
+```bash
+./skills/create-mermaid-diagram/scripts/check_mermaid.sh --strict path/to/diagram.mmd
+./skills/kpiee-bastion-ops/scripts/start_env_via_bastion_ssm.sh --help
+```
 
 ## Add a new skill
 

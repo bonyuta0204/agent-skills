@@ -1,0 +1,6 @@
+interface:
+  display_name: "GitHub PRレビュー棚卸し PM"
+  short_description: "assigned / review-requested PR を棚卸しし、レビュー導線コメントを更新するPM"
+  default_prompt: "GitHub PR のレビュー棚卸しを PM として進める。selection_mode に従って、自分に assign または review request されている open PR を全量または repo 指定で収集し、重複を統合したキューを作る。state file を作って PR ごとの status、retry_count、comment_action、last_confidence、failure_kind を永続化しながら進める。max_workers 分のワーカープールで単一 PR worker を並列に走らせ、完了したものから PM が逐次処理する。worker は PR を更新せず JSON のみ返す。PM は review_route、attention_signals、pass_through_paths、real_review_targets、human_judgment_calls、low_attention_areas、evidence を検証し、不十分なら 1 回だけ再試行する。コメントは rigid template にせず、PR の実質変更、推奨レビュー順、signal 分類された重点観点、pass-through 箇所、深く見るべき箇所、人間判断ポイント、low-signal 箇所、根拠、不確実性を必ず含める。signal は少なくとも SMELL / SPEC_CHECK / DESIGN_CHECK / RISK_CHECK / LOW_SIGNAL を区別して表現する。sticky comment は marker 付きで create/update し、他人のコメントは触らない。local repo が必要なときは ghq で path を解決し、無ければ remote-first で進めて confidence を下げる。"
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,4 @@
+interface:
+  display_name: "KPIEE Bastion Ops"
+  short_description: "踏み台での日常的な確認作業を安全に進める"
+  default_prompt: "Use $kpiee-bastion-ops to perform routine bastion work in kpiee non-production environments with shared-bastion-first routing, safe read-only defaults, and SSM-based command execution."
