@@ -9,6 +9,7 @@ SKILL_NAMES := \
 	code-architecture-review \
 	github-create-pr \
 	github-issue-stocktake \
+	github-pr-stockgtake \
 	github-pr-review-stocktake \
 	kpiee-bastion-ops \
 	kpiee-batch-fix-pm \

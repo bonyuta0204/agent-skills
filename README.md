@@ -73,6 +73,7 @@ make unlink SKILL=create-design-doc
 | [`code-architecture-review`](skills/code-architecture-review/SKILL.md) | 実装の細部よりも責務配置・依存方向・境界設計に注目して、コードや PR をアーキテクチャ観点でレビューする。 |
 | [`github-create-pr`](skills/github-create-pr/SKILL.md) | GitHub の Pull Request をレビューア向け説明で作成・更新し、repo 固有の preflight、template、milestone も扱う。 |
 | [`github-issue-stocktake`](skills/github-issue-stocktake/SKILL.md) | PM-style GitHub issue stocktake/triage with worker-based primary investigation, PM-owned duplicate handling, resumable state tracking, and controlled `AI_STOCKTAKE` body/label updates. |
+| [`github-pr-stockgtake`](skills/github-pr-stockgtake/SKILL.md) | 自分が author の open PR を棚卸しし、概要・状況・ネクストアクション整理と、安全な AI 自動対応まで扱う。 |
 | [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | 自分に assign / review request された PR を棚卸しし、レビュー順・pass-through・重点論点を整理した sticky review comment を更新する。 |
 | [`kpiee-bastion-ops`](skills/kpiee-bastion-ops/SKILL.md) | kpiee の non-prod 環境で、共有 bastion 優先の踏み台ルーティングに従って日常的な確認作業を安全に進め、`it/stg/stg01/stg02` の起動 wrapper も提供する。 |
 | [`kpiee-local-smoke-check`](skills/kpiee-local-smoke-check/SKILL.md) | kpiee の localhost 動作確認で、repo の役割、起動方法、log、認証付き API アクセス、DB 前提、HTTP 最小再現を一貫した runbook として扱う toolkit。 |
@@ -90,6 +91,7 @@ make unlink SKILL=create-design-doc
 | Skill | 主対象 | 向いている依頼 | 主なアウトプット |
 | --- | --- | --- | --- |
 | [`github-pr-review-stocktake`](skills/github-pr-review-stocktake/SKILL.md) | 複数 PR のレビュー待ちキュー | 自分の assigned / review requested PR を棚卸ししたい | PR ごとの sticky なレビュー導線コメント |
+| [`github-pr-stockgtake`](skills/github-pr-stockgtake/SKILL.md) | 複数 PR の author 側キュー | 自分が author の open PR を棚卸しし、AI で進められるものは進めたい | PR ごとの概要・状況・next action と safe auto action |
 | [`pr-implementation-review`](skills/pr-implementation-review/SKILL.md) | 単一 PR の実装 | 1 本の PR をローカル checkout して丁寧にレビューしたい | 実装・構成・PR 本文に対するレビュー指摘 |
 | [`code-architecture-review`](skills/code-architecture-review/SKILL.md) | 単一 PR や差分の構造 | コードレベルの細部より、責務配置・境界・依存方向を見たい | 実装アーキテクチャ観点のレビュー指摘 |
 | [`review-design-doc`](skills/review-design-doc/SKILL.md) | `kpiee-designs` の設計書 PR | 設計書の文書品質と設計妥当性を見たい | 設計書向け inline review と総評 |
@@ -97,6 +99,7 @@ make unlink SKILL=create-design-doc
 選び方の目安:
 
 - まずレビュー待ちの PR 群を整理したいなら `github-pr-review-stocktake`
+- 自分が author の PR 群を整理して、AI で進められるものを進めたいなら `github-pr-stockgtake`
 - 単一 PR の実装を広めに見るなら `pr-implementation-review`
 - コードレベルの細部より責務配置や境界を見たいなら `code-architecture-review`
 - 実装ではなく設計書をレビューするなら `review-design-doc`
