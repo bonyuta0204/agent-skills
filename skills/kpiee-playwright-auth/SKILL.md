@@ -17,9 +17,18 @@ auth の受け渡し artifact は persistent profile ではなく `state-save` �
 STATE_DIR = ~/.local/state/kpiee-playwright-auth/
 ```
 
-- 呼び出し元ディレクトリに依存しない固定パス
+- 呼び出し元ディレクトリに依存しない固定パス。state の正本は常にここ
 - なければ `mkdir -p` で作る
 - repo 内 (`playwright/.auth/` 等) には置かない
+
+### playwright-cli の allowed roots 制約
+
+`playwright-cli` は allowed roots 外のファイルを直接読めない。
+state-load / state-save では、作業ディレクトリの `.playwright-cli/` を一時置き場として使う。
+
+- **ロード時**: `STATE_DIR` から `.playwright-cli/auth-state.json` にコピーしてから `state-load`
+- **セーブ時**: `.playwright-cli/auth-state.json` に `state-save` してから `STATE_DIR` にコピー
+- **作業完了時**: `.playwright-cli/auth-state.json` を削除する (正本は `STATE_DIR` のみ)
 
 ### 命名規約
 
@@ -50,6 +59,7 @@ STATE_DIR = ~/.local/state/kpiee-playwright-auth/
 - credential を `.env` や json に平文で置かない
 - local / stg / prod で同じ state file を使い回さない
 - `playwright-cli open --headed` 単独では開かない。headed login は `--persistent` または `--profile` を必ず付ける
+- `.playwright-cli/auth-state.json` は一時ファイル。作業完了時に必ず削除し、正本は `STATE_DIR` のみ
 
 ## Auth Capture
 
@@ -62,10 +72,14 @@ playwright-cli open https://app.kpiee.com/users/sign_in --headed --persistent
 
 # 2. 人間がブラウザ上でログインを完了する
 
-# 3. ログイン後に state を保存
-playwright-cli state-save ~/.local/state/kpiee-playwright-auth/app-kpiee_prod_userA_default.json
+# 3. ログイン後に state を一時ファイルに保存
+playwright-cli state-save .playwright-cli/auth-state.json
 
-# 4. セッションを閉じる
+# 4. 正本を STATE_DIR にコピー
+cp .playwright-cli/auth-state.json ~/.local/state/kpiee-playwright-auth/app-kpiee_prod_userA_default.json
+
+# 5. 一時ファイル削除 & セッションを閉じる
+rm .playwright-cli/auth-state.json
 playwright-cli close
 ```
 
@@ -81,8 +95,14 @@ STG の場合は URL を `https://stg.kpiee.xyz/users/sign_in` に変える。
 ### 2. state をロードして auth を検証する
 
 ```bash
+# STATE_DIR から一時コピー
+cp ~/.local/state/kpiee-playwright-auth/app-kpiee_prod_userA_default.json .playwright-cli/auth-state.json
+
 # state をロード (ページを開く前に実行可能)
-playwright-cli state-load ~/.local/state/kpiee-playwright-auth/app-kpiee_prod_userA_default.json
+playwright-cli state-load .playwright-cli/auth-state.json
+
+# 一時ファイル削除
+rm .playwright-cli/auth-state.json
 
 # 認証が必要なページを開く
 playwright-cli open https://app.kpiee.com/
@@ -110,7 +130,7 @@ snapshot の結果で以下を確認する:
 1. `playwright-cli snapshot` で login redirect / 認証エラーを確認
 2. `playwright-cli close` でセッションを閉じる
 3. Auth Capture で state を再生成 (人間に再ログインしてもらう)
-4. 新しいセッションで `state-load` して開き直す
+4. 新しいセッションで `STATE_DIR` → `.playwright-cli/` コピー → `state-load` して開き直す
 
 無限リトライしない。
 
