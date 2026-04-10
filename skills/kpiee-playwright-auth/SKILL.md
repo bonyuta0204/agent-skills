@@ -114,6 +114,10 @@ snapshot の結果で以下を確認する:
 
 無限リトライしない。
 
+## References
+
+- [/dx 画面構成マップ](references/dx-screen-map.md): 本番環境のサイドバー構成、各ページの URL パターンと機能概要
+
 ## Reporting Contract
 
 結果報告には最低限これを含める。
