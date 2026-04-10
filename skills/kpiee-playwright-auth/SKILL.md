@@ -1,11 +1,11 @@
 ---
 name: kpiee-playwright-auth
-description: dx-kpiee を Playwright で軽く調査・自動化するときの認証を安定化する skill。認証情報ファイルは持たず、人間が一度ログインして作った storageState を環境別・用途別に安全に再利用したいときに使う。
+description: kpiee を Playwright で軽く調査・自動化するときの認証を安定化する skill。認証情報ファイルは持たず、人間が一度ログインして作った storageState を環境別・用途別に安全に再利用したいときに使う。
 ---
 
 # KPIEE Playwright Auth
 
-dx-kpiee を Playwright で触るときに、認証を「毎回の UI ログイン」ではなく再利用可能な `storageState` で扱う runbook。
+kpiee を Playwright で触るときに、認証を「毎回の UI ログイン」ではなく再利用可能な `storageState` で扱う runbook。
 
 ## State Directory
 
@@ -51,7 +51,9 @@ const browser = await chromium.launch({ headless: false });
 const context = await browser.newContext();
 const page = await context.newPage();
 
-await page.goto("https://<target-host>/login");
+// 本番: https://app.kpiee.com/users/sign_in
+// STG:  https://stg.kpiee.xyz/users/sign_in
+await page.goto("<login-url>");
 
 // --- 人間がログインを完了するまで待つ ---
 await page.pause();
@@ -63,8 +65,14 @@ await context.storageState({
 await browser.close();
 ```
 
-repo に既存の API ログイン (`/ajax/auth/sign_in` 等) があり、秘密情報の取り扱いルールに反しなければそちらを使ってもよい。
 persistent browser profile は最後の手段。
+
+## Login URLs
+
+| 環境 | URL |
+| --- | --- |
+| 本番 | `https://app.kpiee.com/users/sign_in` |
+| STG | `https://stg.kpiee.xyz/users/sign_in` |
 
 ## Workflow
 
@@ -72,7 +80,7 @@ persistent browser profile は最後の手段。
 
 `STATE_DIR` に対象環境の file があるか確認する。有効な state があればそのまま使う。
 
-なければ repo 内の auth 導線 (`auth.setup`, ログイン API 等) を参考に、上記 Auth Capture で state を作る。
+なければ上記 Auth Capture で state を作る。
 
 ### 2. auth を検証する
 
@@ -98,17 +106,6 @@ state を使って対象 URL を開く前に確認する。
 3. 新しい context で開き直す
 
 無限リトライしない。
-
-## dx-kpiee Specific Notes
-
-`dx-kpiee` では `e2e-test/tests/auth.setup.ts` と `e2e-test/playwright.config.ts` に既存の auth パターンがある。
-これらのファイルが見つからなければ、repo 構成が変わったと判断し headed login にフォールバックする。
-
-注意点:
-
-- `base URL` は origin にし、対象 URL は別で持つ
-- state 生成と操作対象 URL を混ぜない
-- `app.kpiee.com` 用 state を `localhost` や `stg` へ流用しない
 
 ## Reporting Contract
 
