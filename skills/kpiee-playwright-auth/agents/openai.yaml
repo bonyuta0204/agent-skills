@@ -1,4 +1,4 @@
 interface:
   display_name: "KPIEE Playwright Auth"
-  short_description: "kpiee の Playwright 認証を human login + state 保存で安定化する"
-  default_prompt: "Use $kpiee-playwright-auth when you need authenticated Playwright access for kpiee investigations or small automations and want to avoid storing credentials, have a human log in once, save storageState, and reuse environment-separated auth files safely."
+  short_description: "kpiee の playwright-cli 認証を human login + state-save/load で安定化する"
+  default_prompt: "Use $kpiee-playwright-auth when you need authenticated playwright-cli access for kpiee investigations or small automations. It uses human login + state-save/state-load to reuse environment-separated storageState files without storing credentials."
