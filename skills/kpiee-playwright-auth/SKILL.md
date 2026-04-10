@@ -8,6 +8,8 @@ description: kpiee を playwright-cli で調査・自動化するときの認証
 kpiee を `playwright-cli` で触るときに、認証を「毎回の UI ログイン」ではなく `storageState` の再利用で扱う runbook。
 
 前提: `npm install -g @playwright/cli@latest` で `playwright-cli` が使えること。
+現状の `playwright-cli 0.1.6` では `open --headed` 単独が即終了することがあるため、人間ログインが必要な step では `--persistent` または `--profile` を付ける。
+auth の受け渡し artifact は persistent profile ではなく `state-save` した json を正とする。
 
 ## State Directory
 
@@ -47,14 +49,16 @@ STATE_DIR = ~/.local/state/kpiee-playwright-auth/
 - 認証情報 (password, token) は AI に渡さない — ログイン結果の state だけを扱う
 - credential を `.env` や json に平文で置かない
 - local / stg / prod で同じ state file を使い回さない
+- `playwright-cli open --headed` 単独では開かない。headed login は `--persistent` または `--profile` を必ず付ける
 
 ## Auth Capture
 
 headed browser で人間が一度ログインし、`state-save` で state を保存する。
+`--headed` 単独は使わず、現状の workaround として persistent profile を併用する。
 
 ```bash
 # 1. headed で login ページを開く
-playwright-cli open https://app.kpiee.com/users/sign_in --headed
+playwright-cli open https://app.kpiee.com/users/sign_in --headed --persistent
 
 # 2. 人間がブラウザ上でログインを完了する
 
@@ -66,6 +70,7 @@ playwright-cli close
 ```
 
 STG の場合は URL を `https://stg.kpiee.xyz/users/sign_in` に変える。
+`--persistent` の user data dir は headed login の workaround としてのみ使い、継続利用の前提にはしない。
 
 ## Workflow
 
