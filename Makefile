@@ -13,6 +13,7 @@ SKILL_NAMES := \
 	kpiee-bastion-ops \
 	kpiee-batch-fix-pm \
 	kpiee-local-smoke-check \
+	kpiee-playwright-auth \
 	kpiee-pm-ops \
 	kpiee-stg-log-db-check \
 	pr-implementation-review \
