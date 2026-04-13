@@ -82,6 +82,7 @@ make unlink SKILL=create-design-doc
 | [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
 | [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with reusable logs/ECS/DB/Snowflake tools, bastion-hosted env start/stop guidance, and DB route references including atlas-core tenant DB lookup. |
 | [`pr-implementation-review`](skills/pr-implementation-review/SKILL.md) | GitHub PR をローカル checkout して、コードの構成・style・PR本文の説明品質まで含めて広くレビューする。 |
+| [`review-product-doc-set`](skills/review-product-doc-set/SKILL.md) | 要件定義書・仕様書・画面項目定義書・必要に応じた Figma を文書セットとして読み、責務分離、重複、整合性の観点でレビューコメント案を返す。 |
 | [`review-design-doc`](skills/review-design-doc/SKILL.md) | GitHub PR 上の kpiee-designs 設計書を、文書品質と設計妥当性の 2 ステップでレビューし、日本語の inline review と総評を返す。 |
 | [`slack-ng-to-issue`](skills/slack-ng-to-issue/SKILL.md) | Slack `#kpiee_ng報告` の NG レポートを NG一覧ID 指定で取得し、GitHub Issue として起票する。 |
 
@@ -95,6 +96,7 @@ make unlink SKILL=create-design-doc
 | [`github-pr-stockgtake`](skills/github-pr-stockgtake/SKILL.md) | 複数 PR の author 側キュー | 自分が author の open PR を棚卸しし、AI で進められるものは進めたい | PR ごとの概要・状況・next action と safe auto action |
 | [`pr-implementation-review`](skills/pr-implementation-review/SKILL.md) | 単一 PR の実装 | 1 本の PR をローカル checkout して丁寧にレビューしたい | 実装・構成・PR 本文に対するレビュー指摘 |
 | [`code-architecture-review`](skills/code-architecture-review/SKILL.md) | 単一 PR や差分の構造 | コードレベルの細部より、責務配置・境界・依存方向を見たい | 実装アーキテクチャ観点のレビュー指摘 |
+| [`review-product-doc-set`](skills/review-product-doc-set/SKILL.md) | Notion / Figma を含む文書セット | 要件定義書・仕様書・画面項目定義書の責務分離、重複、整合性を見たい | 文書セット向けのレビューコメント案 |
 | [`review-design-doc`](skills/review-design-doc/SKILL.md) | `kpiee-designs` の設計書 PR | 設計書の文書品質と設計妥当性を見たい | 設計書向け inline review と総評 |
 
 選び方の目安:
@@ -103,6 +105,7 @@ make unlink SKILL=create-design-doc
 - 自分が author の PR 群を整理して、AI で進められるものを進めたいなら `github-pr-stockgtake`
 - 単一 PR の実装を広めに見るなら `pr-implementation-review`
 - コードレベルの細部より責務配置や境界を見たいなら `code-architecture-review`
+- Notion / Figma を含む文書セットの責務分離や整合性を見るなら `review-product-doc-set`
 - 実装ではなく設計書をレビューするなら `review-design-doc`
 
 Skill-specific verification example:

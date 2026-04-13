@@ -18,6 +18,7 @@ SKILL_NAMES := \
 	kpiee-pm-ops \
 	kpiee-stg-log-db-check \
 	pr-implementation-review \
+	review-product-doc-set \
 	review-design-doc \
 	slack-ng-to-issue
 
