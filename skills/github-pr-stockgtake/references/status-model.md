@@ -1,15 +1,15 @@
-# Status Model
+# 状態分類
 
 ## status_category
 
 - `ready_waiting_review`
   - CI が実質 green
   - conflict なし
-  - author 側の修正待ちが見えない
+  - 作成者側の修正待ちが見えない
   - 人間の承認や再レビュー待ちが主ボトルネック
 
 - `waiting_for_author_changes`
-  - 最新の review comment や requested changes があり、author 側の修正が未完
+  - 最新の review comment や requested changes があり、作成者側の修正が未完
 
 - `failing_checks`
   - status checks に `FAILURE` が含まれる

@@ -1,8 +1,8 @@
-# Worker Contract
+# ワーカー契約
 
 worker は単一 PR を調査し、次の意味情報を返す。
 
-## Required
+## 必須
 
 - `pr`: `owner/repo#number`
 - `title`
@@ -13,7 +13,7 @@ worker は単一 PR を調査し、次の意味情報を返す。
 - `ai_actionability`
 - `confidence`
 
-## Optional
+## 任意
 
 - `auto_action_candidates`
 - `repo_path`
@@ -23,7 +23,7 @@ worker は単一 PR を調査し、次の意味情報を返す。
 
 ## summary
 
-2〜4 文で、PR が何をしているかを author 向けに要約する。
+2〜4 文で、PR が何をしているかを作成者向けに要約する。
 
 ## blocking_facts
 
@@ -38,7 +38,7 @@ worker は単一 PR を調査し、次の意味情報を返す。
 
 ## next_action
 
-author が次にやる 1 手を 1 文で書く。
+作成者が次にやる 1 手を 1 文で書く。
 
 ## auto_action_candidates
 
@@ -55,4 +55,4 @@ AI がその場で実行できる具体 action の配列。
 
 `high | medium | low`
 
-local repo と GitHub 状態の両方を見ていれば `high`、remote-only で一部推定があるなら `medium`、根拠が薄いなら `low`。
+local repo と GitHub 状態の両方を見ていれば `high`、GitHub 上の情報だけで一部推定があるなら `medium`、根拠が薄いなら `low`。
