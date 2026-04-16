@@ -1,27 +1,27 @@
 ---
 name: github-pr-review-stocktake
-description: 自分にアサインまたは review request されている GitHub PR を棚卸しし、PR ごとに sticky なレビュー支援コメントを更新するスキル。全量または repo 指定でバッチ処理し、どこから見ればよいか、どこは pass-through か、人間が判断すべき論点は何かを整理したいときに使う。
+description: 自分にアサインまたはレビュー依頼されている GitHub PR を棚卸しし、PR ごとに固定のレビュー支援コメントを更新するスキル。全量または repo 指定でバッチ処理し、どこから見ればよいか、どこは深追い不要か、人間が判断すべき論点は何かを整理したいときに使う。
 ---
 
 # GitHub PR Review Stocktake PM
 
-## Overview
+## 概要
 
-この skill は **PR reviewer support 専任** で動く。
+この skill は **PR レビュワー支援専任** で動く。
 
 - PM: 対象PRの発見、キュー管理、worker起動、品質ゲート、コメント更新、最終報告
 - Worker: 単一PRの調査と JSON 返却のみ
 
 目的は「AI がレビューする」ことではなく、**人間レビューワーの読み順と重点観点を先回りで整理する**こと。
 
-各 PR には、必要に応じて sticky なレビュー支援コメントを 1 本だけ作成または更新する。
+各 PR には、必要に応じて固定のレビュー支援コメントを 1 本だけ作成または更新する。
 
-## When To Use
+## 使いどころ
 
 - 自分に assign されている PR をまとめて棚卸ししたい
-- 自分に review request されている PR を repo 横断で順番に見ていきたい
-- 特定 repo に絞って PR review queue を整理したい
-- PR ごとに「まずどこを見るか」「どこは pass-through か」を先にコメントしておきたい
+- 自分にレビュー依頼されている PR を repo 横断で順番に見ていきたい
+- 特定 repo に絞ってレビュー待ちキューを整理したい
+- PR ごとに「まずどこを見るか」「どこは深追い不要か」を先にコメントしておきたい
 
 使わない場面:
 
@@ -31,13 +31,13 @@ description: 自分にアサインまたは review request されている GitHu
 - 責務配置や境界設計だけに論点を絞ってレビューしたいとき
 - `kpiee-designs` の設計書 PR をレビューしたいとき
 
-## Goals
+## 目的
 
 - 人間レビューワーが読む前に、PR ごとのレビュー導線を作る
 - 変更箇所とレビュー対象箇所を分離する
-- `pass-through chain` と `real review target` を見分けて残す
-- レビュー箇所ごとに「臭い」「仕様確認寄り」「設計確認寄り」などの signal を付ける
-- PR ごとに sticky comment を更新し、後から見返せる状態にする
+- `追従だけの箇所` と `本当に深く見る箇所` を見分けて残す
+- レビュー箇所ごとに「臭い」「仕様確認寄り」「設計確認寄り」などの観点ラベルを付ける
+- PR ごとに固定コメントを更新し、後から見返せる状態にする
 - 全量または repo 指定で、assigned / review-requested PR をバッチ処理する
 
 ## 他の review skill との関係
@@ -47,20 +47,20 @@ description: 自分にアサインまたは review request されている GitHu
 - 責務配置、依存方向、境界設計が主論点なら `code-architecture-review` へ渡す
 - 設計書 PR なら `review-design-doc` を使う
 
-## Non-Goals
+## やらないこと
 
 - この skill 自体が最終レビュー判定を代行しない
 - `APPROVE` / `REQUEST_CHANGES` を自動で出さない
 - inline review comment を大量自動投稿しない
 - 既存の人手コメントを上書きしない
 
-## Inputs
+## 入力
 
-### Required
+### 必須
 
 - `selection_mode`: `assigned_all` | `repo_assigned` | `explicit_prs`
 
-### Optional
+### 任意
 
 - `repo_slug`: `owner/repo`
 - `repo_path`: 対象ローカルリポジトリの絶対パス
@@ -77,23 +77,23 @@ description: 自分にアサインまたは review request されている GitHu
 `selection_mode=assigned_all` のときは、自分に assign または review request されている open PR を横断収集する。  
 `selection_mode=repo_assigned` のときは `repo_slug` を必須とする。
 
-## Discovery Rules
+## 対象発見ルール
 
 - PR 探索は `gh search prs` を優先する
 - 全量モードでは `--assignee @me` と `--review-requested @me` の両方を使い、重複は PM が統合する
 - repo 指定モードでは `--repo <owner/repo>` を必ず付ける
 - local repo が必要なときは `ghq` で repo path を解決する
-- local repo が見つからない場合でも、`gh pr view` と `gh pr diff` による remote-first 調査は許可する
-- remote-first のみで判断した箇所は `confidence` を下げ、コメントにもその前提を書く
+- local repo が見つからない場合でも、`gh pr view` と `gh pr diff` による GitHub 上の情報優先の調査は許可する
+- GitHub 上の情報だけで判断した箇所は `confidence` を下げ、コメントにもその前提を書く
 
-## Review Support Model
+## レビュー導線モデル
 
 この skill のコアは、各 PR に対して次を整理すること:
 
 - 何が実質的な変更か
 - どの順番で読むと追いやすいか
 - どういう注意で見るべき箇所か
-- どこは pass-through なので深く読まなくてよいか
+- どこは追従だけなので深く読まなくてよいか
 - どこが人間の設計判断ポイントか
 - どこは AI が見た限り大きな論点ではないか
 - どこは AI だけでは決め切れないか
@@ -108,36 +108,39 @@ description: 自分にアサインまたは review request されている GitHu
 - `RISK_CHECK`: 互換性、副作用、transaction、権限、例外処理などの運用リスクを見たほうがよい
 - `LOW_SIGNAL`: 既存追従や単純伝播で、深追い優先度は低い
 
-## Boundaries
+## 境界
 
 - Worker は **単一PR調査専用**
 - Worker は GitHub 上の comment / review / label / assignee を更新しない
-- PM だけが sticky comment を create/update する
+- PM だけが固定コメントを作成または更新する
 - PM はコメント更新前に worker JSON を検証し、不十分なら 1 回だけ再試行する
-- PM は既存の自分の stocktake comment だけを更新し、他人のコメントは変更しない
+- PM は既存の自分の棚卸しコメントだけを更新し、他人のコメントは変更しない
 
-worker JSON 契約と sticky comment の必須情報要件は [references/worker-contract.md](references/worker-contract.md) を参照。
+worker JSON 契約と固定コメントの必須情報要件は [references/worker-contract.md](references/worker-contract.md) を参照。
 
-## Comment Policy
+## コメント方針
 
 コメントは **テンプレ固定にしない**。  
 ただし、各 PR コメントは次の意味情報を必ず含む:
 
 - PR の実質的な変更要約
 - 推奨レビュー順
-- signal 分類された重点観点
-- pass-through と判断した箇所
-- 深く見るべき `real review target`
+- 観点ラベル付きの重点観点
+- 深追い不要と判断した箇所
+- 深く見るべき箇所
 - 人間が判断すべき論点
-- AI が low-signal と見た箇所
+- AI が深追い優先度低めと見た箇所
 - 根拠と不確実性
 
 見出し名、段落構成、文章の流れは PR に応じて最適化してよい。
+ただし、**GitHub 上で見やすい Markdown** を優先し、見出しと箇条書きだけで追える軽い構成にする。
 
 色やラベルの見せ方は固定しない。  
 ただしコメント上では、少なくとも `SMELL` / `SPEC_CHECK` / `DESIGN_CHECK` / `RISK_CHECK` / `LOW_SIGNAL` の区別が読者に分かるように表現する。
 
-## State File
+詳細な構成ルールとサンプルは [references/comment-format.md](references/comment-format.md) を参照。
+
+## 状態ファイル
 
 並列キューを安全に再開できるよう、PM は状態を永続化する。
 
@@ -158,24 +161,24 @@ ${TMPDIR:-/tmp}/github-pr-review-stocktake-<scope-safe>.json
 
 状態変更の直後に書き出し、再開時はこのファイルから復元する。
 
-## Failure Taxonomy
+## 失敗分類
 
 - `needs_user_input`: 対象範囲や repo 指定が不足している
 - `repo_resolution_failure`: `ghq` で local repo を引けず、remote-only でも足りない
 - `worker_contract_failure`: JSON 不正、必須不足、意味情報不足
 - `worker_execution_failure`: worker の途中失敗、ツール失敗、タイムアウト
-- `comment_update_failure`: sticky comment の create/update に失敗
+- `comment_update_failure`: 固定コメントの作成または更新に失敗
 
 `worker_contract_failure` や `comment_update_failure` を、そのままレビュー論点に見せかけない。
 
-## Workflow
+## 進め方
 
-### 0) Resume Check
+### 0) 再開確認
 
 1. state file があれば読み込み、未完了PRから再開する
 2. state file が無ければ新規キューを作る
 
-### 1) Intake
+### 1) 対象確定
 
 1. `selection_mode` から対象PR集合を確定する
 2. `assigned_all` のときは `gh search prs --assignee @me --state open` と `gh search prs --review-requested @me --state open` を使う
@@ -192,23 +195,23 @@ ${TMPDIR:-/tmp}/github-pr-review-stocktake-<scope-safe>.json
 ループ:
   完了した worker を 1 件受け取る
   -> Validate
-  -> Normalize
+  -> 判定整理
   -> Render
   -> Upsert Comment
   -> state file 更新
   -> 空きスロットへ次の pending を投入
-終了: pending / in_flight が 0 になったら Report
+終了: pending / in_flight が 0 になったら最終報告
 ```
 
-### 3) Spawn Worker
+### 3) Worker 起動
 
 - Worker agent 定義: `agents/openai-worker.yaml`
 - 1 PR = 1 Worker
 - `reference_hints` があれば、その PR に関係あるものだけ渡す
 - local repo があるなら repo ルール、隣接実装、diff を見る
-- local repo が無ければ remote-first で `gh pr view` / `gh pr diff` を使う
+- local repo が無ければ GitHub 上の情報優先で `gh pr view` / `gh pr diff` を使う
 
-### 4) Validate & Normalize
+### 4) 検証と判定整理
 
 - worker JSON が契約を満たすか確認する
 - `review_route` が空なら reject
@@ -217,16 +220,17 @@ ${TMPDIR:-/tmp}/github-pr-review-stocktake-<scope-safe>.json
 - `human_judgment_calls` がゼロでもよいが、その場合は low-risk とする根拠が必要
 - reject 時は同一 task を 1 回だけ再試行する
 
-### 5) Render
+### 5) 文面生成
 
-- コメント本文は rigid template でなくてよい
+- コメント本文は固定テンプレートでなくてよい
 - ただし、[references/worker-contract.md](references/worker-contract.md) の semantic slots を全て満たす
+- Markdown の骨格は [references/comment-format.md](references/comment-format.md) に合わせる
 - 1 PR につき 1 コメントにまとめる
 - コメントには marker を入れ、PM が次回 safely upsert できるようにする
 
-### 6) Upsert Comment
+### 6) コメント反映
 
-- 自分の既存 stocktake comment があれば更新、無ければ作成する
+- 自分の既存の棚卸しコメントがあれば更新し、無ければ作成する
 - marker 例:
 
 ```md
@@ -238,23 +242,23 @@ ${TMPDIR:-/tmp}/github-pr-review-stocktake-<scope-safe>.json
 - 更新対象はこの marker を含む **自分のコメントのみ**
 - 他人の review comment、discussion、summary comment は触らない
 
-### 7) Report
+### 7) 最終報告
 
 - 処理した PR 一覧
-- comment create/update 結果
-- remote-only 判定になった PR
+- コメント作成/更新結果
+- GitHub 上の情報だけで判定した PR
 - `failure_kind` と再試行状況
 - 深掘りレビューへ進むべき PR 候補
 
-## Review Heuristics
+## レビュー上の目安
 
-`pass-through` とみなす候補:
+`深追い不要` とみなす候補:
 
 - 引数や型をそのまま次レイヤへ渡しているだけ
 - rename や interface 伝播だけで意味変化がない
 - 分岐、validation、副作用、transaction 境界が増えていない
 
-`real review target` とみなす候補:
+`本当に深く見る箇所` とみなす候補:
 
 - 条件分岐や validation が変わった
 - transaction / permission / serialization / external I/O が変わった
@@ -285,15 +289,15 @@ ${TMPDIR:-/tmp}/github-pr-review-stocktake-<scope-safe>.json
 - migration、権限、外部I/O、serialize/deserialize、例外処理が絡む
 - 後方互換や再実行性に影響しうる
 
-## Communication Rules
+## 対話ルール
 
 - ユーザーに毎PRごとの承認を求めない
 - 範囲指定や repo 指定が曖昧なときだけ確認する
-- remote-only 判定で精度が落ちる場合は、その前提を明示する
-- sticky comment は「AI の結論」ではなく「レビュー導線」として書く
+- GitHub 上の情報だけで判定して精度が落ちる場合は、その前提を明示する
+- 固定コメントは「AI の結論」ではなく「レビュー導線」として書く
 - 人間判断が必要な箇所は断定せず、判断ポイントとして置く
 
-## Command Patterns
+## コマンド例
 
 ```bash
 # 全量: assign + review-requested を検索
@@ -311,8 +315,8 @@ gh pr diff 123 --repo owner/repo
 ghq list -p | rg '/owner/repo$'
 ```
 
-## Bundled Files
+## 同梱ファイル
 
 - `agents/openai.yaml`: PM agent interface
 - `agents/openai-worker.yaml`: worker agent interface
-- `references/worker-contract.md`: worker JSON 契約と comment semantic slots
+- `references/worker-contract.md`: worker JSON 契約と固定コメントの意味スロット

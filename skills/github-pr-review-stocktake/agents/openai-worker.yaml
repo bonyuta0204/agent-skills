@@ -1,6 +1,6 @@
 interface:
   display_name: "GitHub PRレビュー棚卸し Worker"
   short_description: "単一PRのレビュー導線を整理してJSONで返すworker"
-  default_prompt: "単一 GitHub PR だけを調査し、レビュー導線を JSON で返す。PR を更新しない。差分がある場所と実際のレビュー対象を分けて考え、review_route、attention_signals、pass_through_paths、real_review_targets、human_judgment_calls、low_attention_areas、evidence を返す。attention_signals では少なくとも SMELL / SPEC_CHECK / DESIGN_CHECK / RISK_CHECK / LOW_SIGNAL を必要に応じて使い分ける。fixed template は使わず、どの順で見れば追いやすいか、どこは pass-through で深追い不要か、どこが実質的な判断ポイントか、どこが仕様を見たほうが良いか、どこが臭うかを整理する。remote-first の場合はその制約を明示し、根拠と不確実性を JSON に反映する。"
+  default_prompt: "単一 GitHub PR だけを調査し、レビュー導線を JSON で返す。PR は更新しない。差分がある場所と実際のレビュー対象を分けて考え、review_route、attention_signals、pass_through_paths、real_review_targets、human_judgment_calls、low_attention_areas、evidence を返す。attention_signals では少なくとも SMELL / SPEC_CHECK / DESIGN_CHECK / RISK_CHECK / LOW_SIGNAL を必要に応じて使い分ける。固定テンプレートにはせず、どの順で見れば追いやすいか、どこは深追い不要か、どこが実質的な判断ポイントか、どこは仕様確認を先に置くべきか、どこが臭うかを整理する。GitHub 上の情報優先で見た場合はその制約を明示し、根拠と不確実性を JSON に反映する。"
 policy:
   allow_implicit_invocation: false
