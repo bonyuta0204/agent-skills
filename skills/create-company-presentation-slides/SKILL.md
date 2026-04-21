@@ -31,6 +31,7 @@ description: 社内向けの発表資料やキックオフ資料を作るとき�
 - 同じレイアウト archetype を繰り返し使い、流れで読ませる
 
 より具体的な表現ルールは [references/company-slide-style.md](references/company-slide-style.md) を読む。
+SVG や PowerPoint へ仕上げる段階では [references/company-slide-design-system.md](references/company-slide-design-system.md) を読み、色・角丸・余白・layout archetype を合わせる。
 
 ## 進め方
 
@@ -95,7 +96,17 @@ outline が固まったら、各 slide を実際の slide copy にする。
 
 Slide production の format は [references/slide-markdown-format.md](references/slide-markdown-format.md) の `Slide Production` を使う。
 
-### 4. PowerPoint が必要なときだけ仕上げる
+### 4. Visual Design System に合わせる
+
+SVG / PowerPoint へ仕上げる前に、[references/company-slide-design-system.md](references/company-slide-design-system.md) を読み、見た目の型を決める。
+
+- outer background と inner frame の構造を揃える
+- 角丸は大きめに取り、四角く見せない
+- 色は `bg-blue`, `primary-blue`, `text-gray`, `warn-red`, `highlight-yellow` を中心に絞る
+- slide の役割に応じて agenda / big statement / question / cards / action rows などの archetype を選ぶ
+- deck 全体で同じ layout を繰り返し、見た目の統一感を優先する
+
+### 5. PowerPoint が必要なときだけ仕上げる
 
 PowerPoint が必要なら、最後に `PowerPoint` skill を使う。
 
@@ -121,10 +132,12 @@ PowerPoint が必要なら、最後に `PowerPoint` skill を使う。
 1. Story design
 2. Slide-level outline
 3. Slide production
-4. 必要なら PowerPoint 用の handoff、または PPTX
+4. Visual design system に沿った slide rendering 方針
+5. 必要なら PowerPoint 用の handoff、または PPTX
 
 ## 参考
 
 - 段階別 Markdown format: [references/slide-markdown-format.md](references/slide-markdown-format.md)
 - 我々のスライドらしさ: [references/company-slide-style.md](references/company-slide-style.md)
+- Visual design system: [references/company-slide-design-system.md](references/company-slide-design-system.md)
 - 最終的な PPTX 化: `PowerPoint` skill

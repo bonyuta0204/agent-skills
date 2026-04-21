@@ -68,7 +68,7 @@ make unlink SKILL=create-design-doc
 
 | Skill | Description |
 | --- | --- |
-| [`create-company-presentation-slides`](skills/create-company-presentation-slides/SKILL.md) | 社内向けの発表資料を、story design、slide-level outline、slide production の 3 段階で固め、必要なら PowerPoint 化する。 |
+| [`create-company-presentation-slides`](skills/create-company-presentation-slides/SKILL.md) | 社内向けの発表資料を、story design、slide-level outline、slide production の 3 段階で固め、design system に沿って必要なら PowerPoint 化する。 |
 | [`create-design-doc`](skills/create-design-doc/SKILL.md) | Create kpiee design docs (basic or detail) in kpiee-designs using repo templates. |
 | [`create-mermaid-diagram`](skills/create-mermaid-diagram/SKILL.md) | Mermaid 図を壊れにくく作成・修正し、render 検証と syntax/style のチェックまで行う。 |
 | [`code-architecture-review`](skills/code-architecture-review/SKILL.md) | 実装の細部よりも責務配置・依存方向・境界設計に注目して、コードや PR をアーキテクチャ観点でレビューする。 |

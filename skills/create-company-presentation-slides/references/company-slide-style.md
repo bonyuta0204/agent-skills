@@ -6,6 +6,8 @@
 
 見た目をそのままコピーするためではなく、**何を優先して slide を組むか** を揃えるために使う。
 
+色・角丸・余白・layout archetype まで具体化して SVG / PowerPoint に落とす場合は、[company-slide-design-system.md](company-slide-design-system.md) を使う。
+
 ## 基本姿勢
 
 - slide は説明文書ではなく、発表のための強い補助線
