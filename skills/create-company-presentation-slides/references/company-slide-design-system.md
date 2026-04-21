@@ -2,356 +2,507 @@
 
 ## 目的
 
-この document は、社内 slide を SVG / PowerPoint に仕上げるときの visual design system です。
+この document は、社内 slide を SVG / HTML / PowerPoint に仕上げるときの dax 社内スライド design system です。
 
 story や slide copy を考えるための document ではなく、**最後に見た目へ落とすときの判断基準** として使う。
 
+元にした design system asset は `assets/dax-slide-design-system/` に同梱している。
+
+## Source Assets
+
+使える asset:
+
+- `assets/dax-slide-design-system/colors_and_type.css`
+  - brand color、neutral、semantic color、font scale、spacing、radius、shadow
+- `assets/dax-slide-design-system/ui_kits/presentation/presentation.css`
+  - slide shell、agenda、footer、hero text、callout、before/after、stat、speaker などの component
+- `assets/dax-slide-design-system/slides/templates.html`
+  - 代表的な 12 slide template
+- `assets/dax-slide-design-system/slides/deck-stage.js`
+  - HTML deck preview 用 wrapper
+- `assets/dax-slide-design-system/assets/backgrounds/`
+  - abstract shape background、b-dash pattern、solid blue background
+- `assets/dax-slide-design-system/assets/logos/`
+  - b-dash、kpiee、Loglass、DIGGLE logo
+- `assets/dax-slide-design-system/assets/icons/`
+  - question、lightbulb など最小限の icon
+- `assets/dax-slide-design-system/preview/`
+  - color、type、spacing、radius、component の preview card
+
+`uploads/` の元 PPTX / PDF は skill には含めない。実際の出力に使う token / asset / template だけを同梱している。
+
 ## Design Principle
 
-- 情報密度より、視線誘導と感情の流れを優先する
-- 装飾で盛るのではなく、余白・角丸・太い文字・限定色で強く見せる
-- 1 slide の中で主役は 1 つにする
-- slide deck 全体で同じ型を繰り返し、聞き手が迷わないようにする
-- 緊張感を出すときも、画面は散らかさず、色を 1 箇所だけ変える
+dax 社内 slide の visual language は、**白地に巨大ゴシック、ブルーアクセント、たまに全面色**。
+
+- 1 slide 1 message を徹底する
+- 情報量より、視線誘導と感情のピークを優先する
+- 説明文ではなく、短い断言・問い・否定・行動喚起で進める
+- 装飾は最小限にし、巨大文字・余白・限定色で強く見せる
+- section や感情ピークだけ、抽象シェイプ背景や全面色を使う
+- icon より text で語る
+
+## Content Tone
+
+文体は「社内向けの檄文」に近い。
+
+- 1 slide は一文、場合によっては一語で成立させる
+- `問い -> 答え` の連続で構成する
+- 主語は `私たち` / `我々` を基本にする
+- 最後は行動に接続する
+- `"最高"`、`"kpiee"` のように quote で強調する
+- `本気で考える`、`誰よりも`、`絶対に`、`めちゃくちゃ` など強い語を必要なら使う
+- `現状は？ -> 否。` のように、否定から理想へ持っていく構成を許容する
+- 絵文字は使わない
+- 数字は `5倍`、`35項目` のように単位付きで大きく見せる
 
 ## Canvas
 
-- 基本サイズは `1280 x 720`
-- 16:9 固定で設計する
-- 外側に背景色を全面で敷く
-- 内側に大きな白い rounded frame を置く
-- 白 frame の中に main message / cards / agenda を置く
+標準:
 
-標準構造:
+- `1920 x 1080`
+- 16:9
+- PowerPoint / HTML / SVG のどれでもこの比率を維持する
 
-- outer background: slide 全面
-- inner frame: `x=40〜45`, `y=40〜85`, `w=1190〜1200`, `h=590〜640`
-- content safe area: inner frame からさらに `40〜80px` 内側
+SVG や PPTX で `1280 x 720` に落とす場合:
+
+- token は `1920 x 1080` 基準から `2/3` scale する
+- font size、spacing、radius、stroke を同率で縮小する
+- visual density は変えない
 
 ## Color Tokens
 
-### Core
+### Brand
 
-- `bg-blue`: `#B3E7FF`
-  - 標準の外側背景
-  - deck 全体の印象を作る色
-- `primary-blue`: `#00B0F0`
-  - 強調、選択状態、アクション、問い slide の背景
-  - 使いすぎると軽くなるため、1 slide で 1〜2 箇所まで
-- `white`: `#FFFFFF`
-  - inner frame / card / pill の面
-- `text-gray`: `#595959`
-  - main text の基本色
-- `text-dark-gray`: `#434343`
-  - 少し強い本文、引用、補助 box
-- `muted-gray`: `#666666`
-  - 補助本文
+- `--dax-blue`: `#00AFF4`
+  - primary brand blue
+  - 見出し、強調語、図表、active indicator
+- `--dax-blue-strong`: `#00B0F0`
+  - 原本で頻出する cyan blue
+  - heading / emphasis / stroke
+- `--dax-blue-solid`: `#5B94F5`
+  - 全面塗り slide background
+- `--kpiee-coral`: `#FC7878`
+  - kpiee accent、否定、感情ピーク
+- `--kpiee-coral-soft`: `#FFD5D1`
+  - soft shape / background
 
-### Accent
+### Support
 
-- `warn-red`: `#FC7878`
-  - 問題、失敗、危機感、否定側
-  - 文字か枠線のどちらかに絞る
-- `warn-bg`: `#FFEFEF`
-  - 問題 slide の背景に使う淡い赤
-- `highlight-yellow`: `#FFFF00`
-  - 見出し下線
-  - 面積は小さく、太い marker として使う
-- `highlight-yellow-soft`: `#FFFF89`
-  - 黄色下線の stroke 補助
-- `border-blue-light`: `#E2EFF9`
-  - 非選択 pill / card の淡い枠線
+- `--support-green`: `#5CCCA8`
+  - positive / OK
+- `--support-yellow`: `#FFFF89`
+  - marker highlight
+- `--alert-red`: `#FF0000`
+  - strong negative / alert
+
+### Pale Tint
+
+- `--tint-blue-1`: `#EBF6FC`
+- `--tint-blue-2`: `#DBEFF9`
+- `--tint-blue-3`: `#E2EFF9`
+
+### Neutral
+
+- `--fg-0`: `#000000`
+  - hero / absolute emphasis
+- `--fg-1`: `#434343`
+  - primary body text
+- `--fg-2`: `#595959`
+  - secondary body text
+- `--fg-3`: `#666666`
+  - labels / small headings
+- `--fg-mute`: `#B7B7B7`
+  - muted / inactive
+- `--fg-disable`: `#CCCCCC`
+  - disabled / rule
+- `--bg-page`: `#FFFFFF`
+- `--bg-soft`: `#F3F3F3`
+- `--bg-softer`: `#F2F2F2`
+- `--rule`: `#CCCCCC`
+- `--rule-soft`: `#E5E5E5`
+
+### Color Usage
+
+- 通常 slide は white background + dark gray / black text
+- blue は key word、active nav、bar、positive emphasis に限定する
+- coral / red は negative、危機感、否定、kpiee accent に限定する
+- yellow は marker として小面積に使う
+- 新しい色を作らない。必要なら既存色から派生させる
 
 ## Typography
 
-PowerPoint 由来の資料では text がアウトライン化されることがあるため、SVG 生成時は近い見た目を優先する。
+原本は Meiryo を主フォントとして使う。
 
-推奨:
+推奨 font stack:
 
-- Japanese font: `Hiragino Sans`, `Yu Gothic`, `Noto Sans JP`
-- weight: `700〜800`
-- line-height: `1.18〜1.3`
-- letter-spacing: `-0.01em〜0`
-- alignment: center を基本にする
+```css
+"Meiryo", "メイリオ", "Hiragino Kaku Gothic ProN", "Hiragino Sans",
+"Noto Sans JP", "Yu Gothic", "Yu Gothic UI", sans-serif
+```
 
-サイズ目安:
+ルール:
 
-- title / cover: `44〜56px`
-- main statement: `44〜52px`
-- 2 line statement: `38〜46px`
-- card text: `30〜40px`
-- small label: `18〜22px`
-- annotation: `18〜24px`
+- Japanese: Meiryo 優先
+- English / number: Arial fallback を許容
+- weight は `400` と `700` を基本にする
+- 中間 weight に頼らない
+- hero だけ `900` fallback を許容する
+- line-height は tight にする
+- 巨大文字では letter-spacing を少し詰める
 
-文字色:
+Scale for `1920 x 1080`:
 
-- 通常の主張は `text-gray`
-- 青い面の上は `white`
-- 強調語だけ `primary-blue` または `warn-red`
-- 黒 `#000000` は shape path や影由来以外では積極的に使わない
+- hero: `112px`
+- display-xl: `88px`
+- display: `72px`
+- h1: `56px`
+- h2: `44px`
+- h3: `32px`
+- body-lg: `24px`
+- body: `20px`
+- caption: `16px`
+- small: `14px`
+- tag: `12px`
 
-## Shape Tokens
+Hero component:
 
-### Radius
+- `.dax-hero-text.xl`: `160px`
+- `.dax-hero-text.lg`: `112px`
+- `.dax-hero-text.md`: `88px`
 
-この design system では角丸が重要です。四角く見えると一気に違う。
+## Spacing / Radius / Shadow
 
-- inner frame: `rx=30〜45`
-- large card: `rx=25〜35`
-- pill / agenda row: `rx=28〜45`
-- small label: `rx=8〜14`
-- tiny badge: `rx=6〜10`
+Spacing scale:
 
-`rx=12` 程度の card は硬く見えやすい。大きい box ほど丸める。
+- `4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 / 128px`
 
-### Stroke
+Radius:
 
-- card border: `3px`
-- agenda inactive border: `2〜3px`, `border-blue-light`
-- selected / action border: `3px`, `primary-blue`
-- problem border: `3px`, `warn-red`
-- yellow underline stroke: `1〜2px`
+- `4px`: base
+- `8px`: card
+- `16px`: large card / callout
+- `24px`: large panel
+- `999px`: pill / badge
 
-### Shadow
+Shadow:
 
-基本は弱く使う。強い shadow はこのテイストと合いにくい。
+- use lightly
+- max: `0 4px 12px rgba(0,0,0,0.08)`
+- huge drop shadow / neon is not allowed
 
-- card shadow: `0 3px 8px rgba(0,0,0,0.14)` まで
-- white frame には shadow を付けない、または極薄にする
+## Background System
+
+Use these background types intentionally.
+
+### White
+
+- 最多
+- message slide、question slide、body slide の default
+- 文字と余白だけで成立させる
+
+### Shape Background
+
+Asset:
+
+- `bg-pink-shapes.png`
+- `bg-blue-shapes.png`
+- `bg-multi-shapes.png`
+- `bg-yellow-green-shapes.png`
+
+Use for:
+
+- title
+- section divider
+- product / brand moment
+
+Rule:
+
+- message を邪魔しない
+- shape は主役ではなく mood
+
+### Solid Background
+
+Class:
+
+- `.bg-solid-blue`
+- `.bg-solid-dax`
+- `.bg-solid-coral`
+
+Use for:
+
+- 一語宣言
+- 否定
+- 感情ピーク
+- section break
+
+Rule:
+
+- text は white
+- 余計な element は置かない
+
+### b-dash Pattern
+
+Asset:
+
+- `bg-bdash-pattern.jpg`
+- `bg-bdash-pattern-2.jpg`
+
+Use for:
+
+- company / department section
+- light brand moment
 
 ## Layout Archetypes
 
-### 1. Cover / Closing
+### Title
 
-用途:
+Use:
 
-- 始まり、終わり、問いの前後
+- deck opening
 
-構造:
+Structure:
 
-- `primary-blue` 全面背景
-- 中央に white rounded frame
-- frame 内中央に main text
+- white or shape background
+- center title stack
+- kicker at top of stack
+- large title
+- date / speaker as small meta
 
-見た目:
+### Agenda
 
-- 文字は大きく、1 phrase
-- 余白を広く取り、他要素を置かない
+Use:
 
-### 2. Title Kickoff
+- chapter overview
 
-用途:
+Structure:
 
-- deck title
+- white background
+- large slide title
+- numbered agenda rows
+- active nav in top-right if needed
+- footer with b-dash logo and page number
 
-構造:
+### Section Divider
 
-- 淡い装飾背景でもよい
-- 中央に white pill / rounded box
-- title は `primary-blue`
+Use:
 
-注意:
+- chapter transition
 
-- 背景装飾は薄くする
-- title box が主役になるようにする
+Structure:
 
-### 3. Agenda
+- shape background
+- left-aligned or centered section label
+- kicker + huge section title
 
-用途:
+### Hero Question
 
-- 章立て、現在位置
+Use:
 
-構造:
+- 認識を切り替える
 
-- `bg-blue` 背景
-- 大きい white frame
-- 上部中央に heading
-- heading 下に yellow underline
-- 縦に large pill を 3〜4 本並べる
+Structure:
 
-状態:
+- white background
+- huge centered question
+- `？` or key word in blue
 
-- selected: `primary-blue` fill + white text
-- inactive: white fill + `border-blue-light` stroke + `text-gray`
+### Hero Answer / Negation
 
-目安:
+Use:
 
-- pill width: `800〜920`
-- pill height: `70〜90`
-- pill radius: `35〜45`
-- gap: `25〜40`
+- emotional peak
+- denial
 
-### 4. Big Statement
+Structure:
 
-用途:
+- solid coral or solid blue background
+- one word / one short phrase
+- white text
 
-- 1 枚 1 メッセージ
-- 状況認識、問い、結論の手前
+### Big Message
 
-構造:
+Use:
 
-- `bg-blue` 背景
-- white frame
-- 中央に 1〜3 行の text
+- main assertion
 
-表現:
+Structure:
 
-- 基本文字は `text-gray`
-- 重要語だけ `primary-blue` / `warn-red`
-- 2 色以上の強調は避ける
+- white background
+- centered 2〜3 line message
+- key word in blue / coral
 
-### 5. Question Slide
+### Before / After
 
-用途:
+Use:
 
-- section 転換、聞き手の目線を切り替える
+- current state vs target state
 
-構造:
+Structure:
 
-- `primary-blue` 全面背景
-- 中央上に `?` circle
-- 中央に問いを 1 行
+- two columns
+- center arrow
+- after side can use blue border / pale blue background
 
-表現:
+### Stat
 
-- text は white
-- 余白を大きく取り、補足を置かない
+Use:
 
-### 6. Two-by-Two Cards
+- single number impact
 
-用途:
+Structure:
 
-- 期待状態、観点、論点の並列提示
+- label
+- huge number
+- unit
+- short caption
 
-構造:
+### Callout
 
-- `bg-blue` 背景
-- white frame
-- 2 x 2 の large card
-- card は white fill + `primary-blue` stroke
+Use:
 
-目安:
+- important policy / principle
 
-- card width: `480〜540`
-- card height: `170〜210`
-- card radius: `25〜35`
-- stroke: `3px`
-- text: centered, `text-gray`, bold
+Structure:
 
-### 7. Action Rows
+- white card
+- thin border
+- blue left bar
+- title + body
 
-用途:
+### Speaker / Team
 
-- 今後の取り組み、打ち手、運用項目
+Use:
 
-構造:
+- speaker intro
+- team member card
 
-- white frame
-- 横長 rounded row を 2〜3 本
-- 左に small blue label
-- row body に action phrase
+Structure:
 
-表現:
+- avatar
+- role
+- name
+- team
 
-- label は `primary-blue` fill + white text
-- row は white fill + `primary-blue` stroke
-- action phrase の key word は `primary-blue`
+### Product Lockup
 
-### 8. Current State / Contrast
+Use:
 
-用途:
+- kpiee / b-dash brand moment
 
-- 現状と理想、問題と打ち手の対比
+Structure:
 
-構造:
+- shape background
+- logo
+- single message
 
-- heading + yellow underline
-- 上下または左右に 2 row
-- positive / target は blue
-- negative / blocker は red
+### Closing
 
-注意:
+Use:
 
-- blue と red を同じ強さで全面に使わない
-- 対比の意味が一目で分かる配置にする
+- action-oriented final message
 
-### 9. Voice / Quote
+Structure:
 
-用途:
+- centered hero text
+- blue key phrase
+- footer optional
 
-- 外部フィードバック、誰かの声、象徴的なコメント
+## Fixed Elements
 
-構造:
+### Top-right Agenda Nav
 
-- 淡い赤または白背景
-- avatar / name badge
-- speech bubble / white card
-- key phrase は blue
+Class:
 
-注意:
+- `.dax-agenda`
 
-- quote は長くしすぎない
-- 「誰の声か」が見えると pathos が作りやすい
+Rule:
 
-### 10. Growth List
+- active item is black + bold
+- active underline is dax blue
+- inactive item is muted
+- use only when chapter position matters
 
-用途:
+### Footer
 
-- メンバーの成長、Before / After、期待値の列挙
+Class:
 
-構造:
+- `.dax-footer`
 
-- white frame
-- 左に avatar
-- 右に横長 row card
-- 3〜4 人 / 3〜4 item 程度
+Rule:
 
-表現:
+- bottom left: b-dash logo + deck title
+- bottom right: page number
+- can omit on emotional peak slides
 
-- 文字量は増えやすいので、1 row 1 message にする
-- row border は細く、主張は太字で作る
+### Resub Tag
 
-## Composition Rules
+Class:
 
-- まず outer background と inner frame を置く
-- heading がある slide は yellow underline を付ける
-- main message は frame 中央に置く
-- cards は frame 内の余白を十分に残す
-- slide の主役以外の要素は小さく、薄く、少なくする
-- 1 slide の強調色は原則 1 色。対比 slide だけ blue / red を許す
-- 文字は「説明」ではなく「状態」「問い」「期待」を言い切る
+- `.dax-tag-resub`
+
+Use:
+
+- 再掲 slide
+
+## Iconography
+
+dax slide は icon をほぼ使わない。
+
+Allowed:
+
+- `assets/icons/icon-question.png`
+- `assets/icons/icon-lightbulb.png`
+- Unicode arrow / check / dot
+- Lucide only when no bundled icon fits
+
+Not allowed:
+
+- emoji
+- Material Symbols
+- Iconify
+- newly generated PNG icon
+- excessive icon usage
+
+## Implementation Rules
+
+When generating HTML/SVG first:
+
+- start from `assets/dax-slide-design-system/slides/templates.html`
+- import `colors_and_type.css`
+- import `ui_kits/presentation/presentation.css`
+- use `<section class="dax-slide bg-*">` as slide shell
+- reuse classes instead of inventing new styling
+- create only small local overrides per deck
+- produce a contact sheet to check repetition and visual rhythm
+
+When generating PowerPoint:
+
+- keep `1920 x 1080` design proportions
+- use Meiryo if available
+- if SVG rendering is used, export each slide from the HTML/SVG source and place it in PPTX
+- if editable PPTX is required, recreate the same token values with PowerPoint shapes
+- do not mix unrelated PowerPoint theme colors
 
 ## Do / Don't
 
 Do:
 
-- 角丸を大きくする
-- 余白を広く取る
-- 太い grey text を中心に置く
-- blue / red / yellow の役割を固定する
-- 同じ layout を繰り返す
+- use white background as default
+- use huge bold Japanese text
+- use blue / coral / yellow for specific semantic roles
+- keep each slide visually sparse
+- repeat template archetypes
+- use top-right agenda and footer only when they support context
+- check the full deck as a contact sheet
 
 Don't:
 
-- card の角を `rx=10〜15` 程度にする
-- 細い文字で paragraph を置く
-- 背景に gradient や blob を多用する
-- shadow を強くする
-- 1 slide に複数の message を置く
-- 色数を増やす
-
-## SVG / PowerPoint 実装メモ
-
-SVG で先に作る場合:
-
-- `viewBox="0 0 1280 720"` を固定する
-- `rect` の `rx` を大きめに取る
-- text は live text で作り、最後に必要なら path 化する
-- highlight は text 全体ではなく key word だけに当てる
-- contact sheet を作って deck 全体の反復感を見る
-
-PowerPoint に戻す場合:
-
-- SVG を slide ごとに背景画像として貼るだけでなく、必要に応じて editable shape に近い構成も残す
-- ただし最終見た目を優先する場合は、SVG を高解像度で貼る方が崩れにくい
-- 既存資料に混ぜるなら、まず `bg-blue`, `inner frame`, `font weight`, `radius` を合わせる
+- use emoji
+- make a paragraph-heavy slide
+- add new colors
+- use Inter / Roboto as primary font
+- overuse icons
+- use heavy shadow / neon / glassmorphism
+- nest cards inside cards
+- make every slide visually different

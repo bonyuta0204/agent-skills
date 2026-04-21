@@ -1,4 +1,4 @@
 interface:
   display_name: "Company Presentation Slides"
-  short_description: "社内向けスライドを3段階で固めてPPT化する"
-  default_prompt: "Use $create-company-presentation-slides to design the story first, turn it into slide-level outlines, refine each slide into presentation copy, and only then convert it to PowerPoint if needed."
+  short_description: "社内向けスライドを骨子からdaxデザインで仕上げる"
+  default_prompt: "Use $create-company-presentation-slides to design the story first, turn it into slide-level outlines, refine each slide into presentation copy, and then render it with the dax slide design system before converting to PowerPoint if needed."

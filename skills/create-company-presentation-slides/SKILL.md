@@ -1,13 +1,13 @@
 ---
 name: create-company-presentation-slides
-description: 社内向けの発表資料やキックオフ資料を作るときに、いきなり PowerPoint を作らず、まずユーザーと擦り合わせながら story を設計し、次に slide ごとの骨子を Markdown で固め、最後に必要なときだけ PowerPoint 化する 3 段階 workflow の skill。
+description: 社内向けの発表資料やキックオフ資料を作るときに、いきなり PowerPoint を作らず、ユーザーと擦り合わせながら story、slide ごとの骨子、slide copy を Markdown で固め、最後に dax 社内スライド design system に沿って SVG / HTML / PowerPoint 化する skill。
 ---
 
 # Create Company Presentation Slides
 
 ## この skill の目的
 
-この skill は、社内向けスライドを **story の設計 -> slide ごとの骨子化 -> PowerPoint への仕上げ** の 3 段階で作るためのものです。
+この skill は、社内向けスライドを **story の設計 -> slide ごとの骨子化 -> slide copy 化 -> design system に沿った仕上げ** の順で作るためのものです。
 
 特に次のような資料に向いています。
 
@@ -31,7 +31,7 @@ description: 社内向けの発表資料やキックオフ資料を作るとき�
 - 同じレイアウト archetype を繰り返し使い、流れで読ませる
 
 より具体的な表現ルールは [references/company-slide-style.md](references/company-slide-style.md) を読む。
-SVG や PowerPoint へ仕上げる段階では [references/company-slide-design-system.md](references/company-slide-design-system.md) を読み、色・角丸・余白・layout archetype を合わせる。
+SVG / HTML / PowerPoint へ仕上げる段階では [references/company-slide-design-system.md](references/company-slide-design-system.md) を読み、同梱 asset の `assets/dax-slide-design-system/` を使って色・typography・layout archetype を合わせる。
 
 ## 進め方
 
@@ -98,12 +98,12 @@ Slide production の format は [references/slide-markdown-format.md](references
 
 ### 4. Visual Design System に合わせる
 
-SVG / PowerPoint へ仕上げる前に、[references/company-slide-design-system.md](references/company-slide-design-system.md) を読み、見た目の型を決める。
+SVG / HTML / PowerPoint へ仕上げる前に、[references/company-slide-design-system.md](references/company-slide-design-system.md) を読み、見た目の型を決める。
 
-- outer background と inner frame の構造を揃える
-- 角丸は大きめに取り、四角く見せない
-- 色は `bg-blue`, `primary-blue`, `text-gray`, `warn-red`, `highlight-yellow` を中心に絞る
-- slide の役割に応じて agenda / big statement / question / cards / action rows などの archetype を選ぶ
+- `assets/dax-slide-design-system/colors_and_type.css` と `ui_kits/presentation/presentation.css` の token / component を優先する
+- Meiryo ベースの太い日本語 typography を使う
+- 色は `dax-blue`, `kpiee-coral`, neutral, marker yellow を中心に絞る
+- slide の役割に応じて title / agenda / section divider / hero question / hero answer / big message / before-after / stat / callout などの archetype を選ぶ
 - deck 全体で同じ layout を繰り返し、見た目の統一感を優先する
 
 ### 5. PowerPoint が必要なときだけ仕上げる
