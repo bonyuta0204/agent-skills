@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<title>Callout Card</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .callout { background:#fff; border:1px solid #CCCCCC; border-radius:8px; padding: 20px 24px; display:flex; gap:16px; align-items:flex-start; }
+  .callout .bar { width: 4px; align-self: stretch; background: var(--dax-blue); border-radius: 2px; }
+  .callout .title { font-family: var(--ff-display); font-weight:700; font-size: 18px; color: var(--fg-0); margin: 0 0 4px; }
+  .callout .body { font-family: var(--ff-body); font-size: 14px; color: var(--fg-1); line-height:1.6; margin:0; }
+
+  .callout-soft { background: #EBF6FC; border: 1px solid #DBEFF9; border-radius: 8px; padding: 16px 20px; font-family: var(--ff-body); font-size:14px; color: var(--fg-1); }
+</style>
+</head><body><div class="card">
+  <div class="callout">
+    <div class="bar"></div>
+    <div>
+      <h3 class="title">現状</h3>
+      <p class="body">要件仕様のレビューが通らない。受入れたとしても品質が低く、手戻りが多発している。</p>
+    </div>
+  </div>
+  <div class="callout-soft">
+    <b style="color: var(--dax-blue);">17期1Q 大事にしたいこと</b> — 品質向上 / 組織としてのパフォーマンスの引き上げ。
+  </div>
+</div></body></html>

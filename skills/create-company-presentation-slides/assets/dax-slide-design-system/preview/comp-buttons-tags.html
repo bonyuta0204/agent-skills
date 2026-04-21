@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<title>Buttons & Tags</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .btn { font-family: var(--ff-body); font-size: 14px; font-weight: 700; border-radius: 6px; padding: 10px 20px; border: 1px solid transparent; cursor: pointer; transition: opacity .15s, background .15s; }
+  .btn-primary { background: var(--dax-blue); color: #fff; }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-secondary { background: #fff; color: var(--fg-1); border-color: #CCCCCC; }
+  .btn-secondary:hover { background: #F3F3F3; }
+  .btn-ghost { background: transparent; color: var(--dax-blue); }
+  .btn-ghost:hover { background: #EBF6FC; }
+  .btn-danger { background: var(--fg-0); color: #fff; }
+
+  .pill { display:inline-block; font-family: var(--ff-body); font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F3F3; color: var(--fg-2); letter-spacing: 0.04em; }
+  .pill.blue  { background: #EBF6FC; color: #007FB3; }
+  .pill.coral { background: #FFE6E3; color: #D44B43; }
+  .pill.green { background: #E1F6EF; color: #2D9A78; }
+  .pill.yellow{ background: #FFFBD1; color: #8A7C00; }
+</style>
+</head><body><div class="card">
+  <div class="wrap" style="gap:8px;">
+    <button class="btn btn-primary">開始する</button>
+    <button class="btn btn-secondary">キャンセル</button>
+    <button class="btn btn-ghost">詳しく</button>
+    <button class="btn btn-danger">削除</button>
+  </div>
+  <div class="wrap" style="gap:6px;">
+    <span class="pill">再掲</span>
+    <span class="pill blue">進行中</span>
+    <span class="pill green">達成</span>
+    <span class="pill coral">要改善</span>
+    <span class="pill yellow">強調</span>
+  </div>
+</div></body></html>

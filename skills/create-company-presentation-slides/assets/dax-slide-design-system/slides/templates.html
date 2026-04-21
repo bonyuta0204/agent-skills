@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>dax 社内スライド テンプレート集</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="../ui_kits/presentation/presentation.css">
+<style>
+  body { margin: 0; background: #000; }
+  /* per-slide local overrides */
+  .title-stack { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 0 12%; }
+  .title-stack .kicker { font-family: var(--ff-body); font-size: 28px; color: var(--fg-3); letter-spacing: 0.12em; font-weight: 700; margin: 0 0 24px; }
+  .title-stack h1 { font-family: var(--ff-display); font-size: 112px; font-weight: 900; margin: 0; color: var(--fg-0); line-height: 1.05; letter-spacing: -0.02em; }
+  .title-stack .sub  { font-family: var(--ff-body); font-size: 32px; color: var(--fg-2); margin-top: 32px; }
+  .title-stack .meta { position: absolute; bottom: 80px; font-family: var(--ff-body); font-size: 22px; color: var(--fg-3); }
+
+  .center-content { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding: 0 8%; }
+  .side-panel { position:absolute; top: 240px; bottom: 160px; left: 96px; right: 96px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+  .bullet { font-family: var(--ff-body); font-size: 28px; color: var(--fg-1); line-height: 1.7; margin: 0 0 16px; padding-left: 28px; position: relative; }
+  .bullet::before { content: "●"; position: absolute; left: 0; color: var(--dax-blue); font-size: 18px; top: 8px; }
+</style>
+</head>
+<body>
+
+<script type="application/json" id="speaker-notes">
+[]
+</script>
+
+<deck-stage width="1920" height="1080">
+
+  <!-- 1. TITLE SLIDE -->
+  <section data-label="Title" class="dax-slide bg-white">
+    <div class="title-stack">
+      <div class="kicker">17期 3Q KICK OFF</div>
+      <h1>データ基盤<br><span style="color:var(--dax-blue);">キックオフ</span></h1>
+      <div class="sub">2024.10.01  /  株式会社 dax</div>
+      <div class="meta">発表者：梶山 涼介（PdM チーム）</div>
+    </div>
+  </section>
+
+  <!-- 2. AGENDA -->
+  <section data-label="Agenda" class="dax-slide bg-white">
+    <h2 class="dax-slide-title">アジェンダ</h2>
+    <div style="position:absolute; top:260px; left:96px; right:96px; display:flex; flex-direction:column; gap:28px;">
+      <div style="display:flex; gap:32px; align-items:center; padding: 24px 0; border-bottom:1px solid var(--rule);">
+        <div style="font-family:var(--ff-display); font-size:64px; font-weight:900; color:var(--dax-blue); width:120px;">01</div>
+        <div style="font-family:var(--ff-display); font-size:44px; font-weight:700; color:var(--fg-0);">PdM</div>
+        <div style="font-family:var(--ff-body); font-size:24px; color:var(--fg-3); margin-left:auto;">プロダクト戦略 / 現状と目指す姿</div>
+      </div>
+      <div style="display:flex; gap:32px; align-items:center; padding: 24px 0; border-bottom:1px solid var(--rule);">
+        <div style="font-family:var(--ff-display); font-size:64px; font-weight:900; color:var(--dax-blue); width:120px;">02</div>
+        <div style="font-family:var(--ff-display); font-size:44px; font-weight:700; color:var(--fg-0);">開発</div>
+        <div style="font-family:var(--ff-body); font-size:24px; color:var(--fg-3); margin-left:auto;">開発組織 / 品質とスループット</div>
+      </div>
+      <div style="display:flex; gap:32px; align-items:center; padding: 24px 0; border-bottom:1px solid var(--rule);">
+        <div style="font-family:var(--ff-display); font-size:64px; font-weight:900; color:var(--dax-blue); width:120px;">03</div>
+        <div style="font-family:var(--ff-display); font-size:44px; font-weight:700; color:var(--fg-0);">データ基盤</div>
+        <div style="font-family:var(--ff-body); font-size:24px; color:var(--fg-3); margin-left:auto;">ロードマップと今期の重点</div>
+      </div>
+      <div style="display:flex; gap:32px; align-items:center; padding: 24px 0;">
+        <div style="font-family:var(--ff-display); font-size:64px; font-weight:900; color:var(--dax-blue); width:120px;">04</div>
+        <div style="font-family:var(--ff-display); font-size:44px; font-weight:700; color:var(--fg-0);">総括</div>
+        <div style="font-family:var(--ff-body); font-size:24px; color:var(--fg-3); margin-left:auto;">今期最も大事にしたいこと</div>
+      </div>
+    </div>
+    <div class="dax-agenda">
+      <span class="item active">アジェンダ</span>
+      <span class="sep"></span><span class="item">PdM</span>
+      <span class="sep"></span><span class="item">開発</span>
+      <span class="sep"></span><span class="item">総括</span>
+    </div>
+    <div class="dax-footer"><div class="brand"><img src="../assets/logos/bdash-logo.png" alt=""><span>17期3Q データ基盤キックオフ</span></div><span>02 / 12</span></div>
+  </section>
+
+  <!-- 3. SECTION DIVIDER (shapes bg) -->
+  <section data-label="Section PdM" class="dax-slide bg-shapes-pink">
+    <div class="dax-section-label">
+      <p class="kicker">01 &nbsp; / &nbsp; SECTION</p>
+      <h1 class="title">PdM</h1>
+    </div>
+  </section>
+
+  <!-- 4. HERO QUESTION -->
+  <section data-label="Question" class="dax-slide bg-white">
+    <div class="dax-hero-text lg">現状は<span class="blue">？</span></div>
+    <div class="dax-agenda">
+      <span class="item active">PdM</span>
+      <span class="sep"></span><span class="item">開発</span>
+      <span class="sep"></span><span class="item">データ基盤</span>
+      <span class="sep"></span><span class="item">総括</span>
+    </div>
+  </section>
+
+  <!-- 5. HERO ANSWER (solid coral bg, negation) -->
+  <section data-label="No" class="dax-slide bg-solid-coral">
+    <div class="dax-hero-text xl" style="color:#fff;">否。</div>
+  </section>
+
+  <!-- 6. MESSAGE w/ quote-em -->
+  <section data-label="Message" class="dax-slide bg-white">
+    <div class="dax-hero-text md">
+      どのプロダクトにも負けない<br>
+      <span class="blue">“最高”</span> のプロダクトを描く
+    </div>
+    <div class="dax-agenda">
+      <span class="item active">PdM</span>
+      <span class="sep"></span><span class="item">開発</span>
+      <span class="sep"></span><span class="item">データ基盤</span>
+      <span class="sep"></span><span class="item">総括</span>
+    </div>
+    <div class="dax-footer"><div class="brand"><img src="../assets/logos/bdash-logo.png" alt=""><span>17期3Q データ基盤キックオフ</span></div><span>05 / 12</span></div>
+  </section>
+
+  <!-- 7. BEFORE / AFTER -->
+  <section data-label="Before After" class="dax-slide bg-white">
+    <h2 class="dax-slide-title">現状 と 目指す姿</h2>
+    <div style="position:absolute; top: 320px; left: 96px; right: 96px;">
+      <div class="dax-baftr">
+        <div class="col">
+          <h5>現状</h5>
+          <p>負のスパイラルを<br>絵に描いたような状況</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="col after">
+          <h5>目指す姿</h5>
+          <p>他社では真似ができない<br>最強の開発組織</p>
+        </div>
+      </div>
+    </div>
+    <div class="dax-agenda">
+      <span class="item">PdM</span>
+      <span class="sep"></span><span class="item active">開発</span>
+      <span class="sep"></span><span class="item">データ基盤</span>
+      <span class="sep"></span><span class="item">総括</span>
+    </div>
+    <div class="dax-footer"><div class="brand"><img src="../assets/logos/bdash-logo.png" alt=""><span>17期3Q データ基盤キックオフ</span></div><span>06 / 12</span></div>
+  </section>
+
+  <!-- 8. STAT -->
+  <section data-label="Stat" class="dax-slide bg-white">
+    <h2 class="dax-slide-title">月間 PR マージ数は —</h2>
+    <div class="center-content">
+      <div class="dax-stat">
+        <div class="label">YEAR-OVER-YEAR</div>
+        <div class="num coral">5<span class="unit">倍</span></div>
+        <div class="caption">一人ひとりの力がついたことで、チーム全体のスループットが上がっている。</div>
+      </div>
+    </div>
+    <div class="dax-agenda">
+      <span class="item">PdM</span>
+      <span class="sep"></span><span class="item active">開発</span>
+      <span class="sep"></span><span class="item">データ基盤</span>
+      <span class="sep"></span><span class="item">総括</span>
+    </div>
+    <div class="dax-footer"><div class="brand"><img src="../assets/logos/bdash-logo.png" alt=""><span>17期3Q データ基盤キックオフ</span></div><span>07 / 12</span></div>
+  </section>
+
+  <!-- 9. CALLOUT + BULLETS -->
+  <section data-label="Callout" class="dax-slide bg-white">
+    <h2 class="dax-slide-title">17期1Q 大事にしたいこと</h2>
+    <div style="position:absolute; top: 300px; left: 96px; right: 96px; display:flex; flex-direction:column; gap:40px;">
+      <div class="dax-callout">
+        <div class="bar"></div>
+        <div>
+          <h3 class="title">品質向上と、組織としてのパフォーマンスの引き上げ</h3>
+          <p class="body">要件仕様のレビュー精度を上げ、受入れ後の手戻りを減らす。チーム全体で <span class="dax-marker">"kpiee" を誰よりも知る</span> 状態を作る。</p>
+        </div>
+      </div>
+      <ul style="padding:0; margin:0; list-style:none;">
+        <li class="bullet">あるべき仕様を <b>本気で考える</b></li>
+        <li class="bullet">レビュアーが <b>3秒で気づく</b> バグを作らない</li>
+        <li class="bullet">PdM・開発・データ基盤 の <b>3職種横断で議論する</b></li>
+      </ul>
+    </div>
+    <div class="dax-agenda">
+      <span class="item">PdM</span>
+      <span class="sep"></span><span class="item active">開発</span>
+      <span class="sep"></span><span class="item">データ基盤</span>
+      <span class="sep"></span><span class="item">総括</span>
+    </div>
+    <div class="dax-footer"><div class="brand"><img src="../assets/logos/bdash-logo.png" alt=""><span>17期3Q データ基盤キックオフ</span></div><span>08 / 12</span></div>
+    <div class="dax-tag-resub">再掲</div>
+  </section>
+
+  <!-- 10. SPEAKER / TEAM CARD -->
+  <section data-label="Speaker" class="dax-slide bg-soft">
+    <h2 class="dax-slide-title">本日の発表者</h2>
+    <div style="position:absolute; top: 320px; left: 96px; right: 96px; display:grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+      <div class="dax-speaker">
+        <div class="avatar">梶</div>
+        <div>
+          <div class="role">発表者</div>
+          <div class="name">梶山 涼介</div>
+          <div class="team">PdM チーム</div>
+        </div>
+      </div>
+      <div class="dax-speaker">
+        <div class="avatar" style="background: linear-gradient(135deg, var(--kpiee-coral-soft), var(--dax-blue));">中</div>
+        <div>
+          <div class="role">発表者</div>
+          <div class="name">中村 優太</div>
+          <div class="team">kpiee 開発</div>
+        </div>
+      </div>
+    </div>
+    <div class="dax-footer"><div class="brand"><img src="../assets/logos/bdash-logo.png" alt=""><span>17期3Q データ基盤キックオフ</span></div><span>09 / 12</span></div>
+  </section>
+
+  <!-- 11. PRODUCT LOCKUP -->
+  <section data-label="Product" class="dax-slide bg-shapes-blue">
+    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:48px;">
+      <img src="../assets/logos/kpiee-logo.png" alt="kpiee" style="height: 220px;">
+      <div style="font-family:var(--ff-display); font-size:44px; font-weight:700; color:var(--fg-1); text-align:center;">
+        我々は <span class="dax-quote-em">“我が子”</span> として kpiee を育てる
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. CLOSING -->
+  <section data-label="Closing" class="dax-slide bg-white">
+    <div class="dax-hero-text lg">
+      最高のプロダクトを<br>
+      <span class="blue">創り上げましょう。</span>
+    </div>
+    <div class="dax-footer"><div class="brand"><img src="../assets/logos/bdash-logo.png" alt=""><span>17期3Q データ基盤キックオフ</span></div><span>12 / 12</span></div>
+  </section>
+
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<title>Agenda Nav</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .agenda { display:flex; gap:24px; align-items:center; padding: 12px 20px; border:1px solid #EEE; border-radius:8px; background:#fff; font-family: var(--ff-body); font-size:14px; color: var(--fg-mute); }
+  .agenda .item { position:relative; padding: 6px 2px; }
+  .agenda .item.active { color: var(--fg-0); font-weight: 700; }
+  .agenda .item.active::after { content:""; position:absolute; left:0; right:0; bottom:-14px; height: 3px; background: var(--dax-blue); }
+  .agenda .sep { width:4px; height:4px; border-radius:50%; background: var(--rule); }
+</style>
+</head><body><div class="card">
+  <div class="mono">セクション切替ナビ（原本で毎スライド右上に出る）</div>
+  <div class="agenda">
+    <div class="item">PdM</div>
+    <span class="sep"></span>
+    <div class="item active">開発</div>
+    <span class="sep"></span>
+    <div class="item">アジェンダ</div>
+    <span class="sep"></span>
+    <div class="item">総括</div>
+  </div>
+</div></body></html>
