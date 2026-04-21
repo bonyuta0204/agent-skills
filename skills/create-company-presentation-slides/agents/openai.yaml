@@ -1,0 +1,4 @@
+interface:
+  display_name: "Company Presentation Slides"
+  short_description: "社内向けスライドを骨子からPPT化まで整える"
+  default_prompt: "Use $create-company-presentation-slides to align on audience and message, draft a Markdown slide outline, refine slide copy, and only then convert it to PowerPoint if needed."
