@@ -48,6 +48,14 @@ state-load / state-save では、作業ディレクトリの `.playwright-cli/` 
 | --- | --- |
 | 本番 | `https://app.kpiee.com/users/sign_in` |
 | STG | `https://stg.kpiee.xyz/users/sign_in` |
+| localhost | `http://localhost/users/sign_in` |
+
+### localhost の注意事項
+
+- ログイン後は `http://localhost/dx/workspaces/:id/dashboards/:id` にリダイレクトされる
+- atlas-kpiee（データコネクタ）は `http://localhost/dc/` でアクセスする
+- localhost state の命名例: `localhost_local_default_default.json`
+- localhost 用 state は prod / stg と **必ず分離する**（同じファイルを使い回さない）
 
 ## Core Rules
 

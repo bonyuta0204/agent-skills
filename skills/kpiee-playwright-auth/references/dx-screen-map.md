@@ -108,3 +108,37 @@ flowchart LR
 - 事業管理・AIチャット・通知設定（経営管理/事業管理）・環境設定は URL に `/dx` prefix がなく、旧ルーティングの可能性あり
 - 経営管理・競合比較は「データX」ワークスペースでは forbidden。別ワークスペースまたは権限設定で開放される可能性あり
 - `:id` は workspace ID（データX = 4）、`:tip_id` はカード ID
+
+---
+
+# atlas-kpiee /dc 画面構成マップ
+
+atlas-kpiee（データコネクタ）は `/dc/` を base path とする別 SPA。
+localhost では `http://localhost/dc/`、本番では `https://app.kpiee.com/dc/` でアクセスする。
+**port 5175 への直接アクセスは不可（設計ドキュメントサイトが表示される）。**
+
+## ページ一覧
+
+| 画面 | URL パターン | 備考 |
+|------|-------------|------|
+| ホーム（SPA root） | `/dc/` | workspace 未選択状態 |
+| データボード詳細 | `/dc/workspaces/:wsId/data_boards/:boardId` | フローノードをクリックで詳細パネル表示 |
+| データボード新規 | `/dc/workspaces/:wsId/data_boards/new` | |
+| データボード編集 | `/dc/workspaces/:wsId/data_boards/:boardId/edit` | |
+| JOIN（横結合）編集 | `/dc/workspaces/:wsId/data_boards/:boardId/joins/:assetId/edit` | |
+| UNION（縦結合）編集 | `/dc/workspaces/:wsId/data_boards/:boardId/unions/:assetId/edit` | |
+| 加工タスク編集 | `/dc/workspaces/:wsId/data_boards/:boardId/cleansings/:assetId/edit` | |
+
+## assetId の特定方法
+
+データボード詳細画面でノードをクリックすると、ノードの `data-testid` が
+`rf__node-asset_<assetId>` の形式になる。これで assetId を読み取れる。
+
+例: `rf__node-asset_122` → assetId = 122
+
+## localhost でのテストデータ確認
+
+localhost workspace 1 のデータボード:
+- `http://localhost/dc/workspaces/1/data_boards/107` — JOIN / UNION / 加工タスクのノードが揃っているボード
+  - JOIN assetId: 122
+  - UNION assetId: 123

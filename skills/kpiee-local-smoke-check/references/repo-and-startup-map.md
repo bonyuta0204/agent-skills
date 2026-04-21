@@ -109,6 +109,35 @@ review worktree の Go API だけ差し替えたい、のような場面では�
 
 固定値だと決めつけず、listen 中の process を実測する。
 
+## atlas-kpiee のアクセス方法（重要）
+
+atlas-kpiee はローカルでは **nginx (port 80) 経由** でアクセスする。
+
+| パス | 内容 |
+|------|------|
+| `http://localhost/dc/` | atlas-kpiee SPA（データコネクタ） |
+| `http://localhost/dx/` | dx-kpiee アプリ |
+| `http://localhost/users/sign_in` | ログイン画面（dx-kpiee） |
+
+**⚠️ port 5175 に直接アクセスしない。**
+Vite の `server.port: 5175` は atlas-kpiee frontend だが、nginx を経由せずに直接アクセスすると
+「kpiee design docs」（設計ドキュメントサイト）が表示され、アプリ画面にならない。
+必ず `http://localhost/dc/` を使う。
+
+### データコネクタ URL パターン
+
+workspace ID と asset ID は実際の DB データに依存するため、事前に確認してから使う。
+
+| 画面 | URL パターン |
+|------|-------------|
+| データボード詳細 | `http://localhost/dc/workspaces/:wsId/data_boards/:boardId` |
+| JOIN（横結合）編集 | `http://localhost/dc/workspaces/:wsId/data_boards/:boardId/joins/:assetId/edit` |
+| UNION（縦結合）編集 | `http://localhost/dc/workspaces/:wsId/data_boards/:boardId/unions/:assetId/edit` |
+| 加工タスク編集 | `http://localhost/dc/workspaces/:wsId/data_boards/:boardId/cleansings/:assetId/edit` |
+
+データボード詳細画面でノードをクリックするとブラウザの `data-testid` に
+`rf__node-asset_<assetId>` が付くため、assetId はそこから読み取れる。
+
 ## `.env.local`
 
 review worktree の挙動だけ変なら、まず `ghq` 側と差分を見る。
