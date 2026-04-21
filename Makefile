@@ -4,6 +4,7 @@ CODEX_HOME  ?= $(HOME)/.codex
 CLAUDE_HOME ?= $(HOME)/.claude
 SKILLS_DIR  := $(CURDIR)/skills
 SKILL_NAMES := \
+	create-company-presentation-slides \
 	create-design-doc \
 	create-mermaid-diagram \
 	code-architecture-review \

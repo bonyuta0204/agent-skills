@@ -1,0 +1,225 @@
+/* ================================================================
+ * dax 社内スライド Design System — Colors & Type
+ * ================================================================
+ * Extracted from 17期3Q キックオフ master deck + 総会資料.
+ * Everything here reflects the real slide master palette.
+ * ---------------------------------------------------------------- */
+
+/* ---------- Fonts ----------
+ * 原本は Meiryo (メイリオ) を JP、Arial を EN に使用。
+ * Web では Meiryo は OS 同梱のため自動採用。フォールバックで
+ * "Hiragino Kaku Gothic ProN" → "Noto Sans JP"。
+ * 英数字はスライド原本どおり Arial / system sans を優先。
+ */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+1p:wght@400;500;700;900&display=swap');
+
+:root {
+  /* ========== Brand Colors ========== */
+  /* Primary — dax ブランドブルー。ヘッダー、アクセント、図表に多用 */
+  --dax-blue:          #00AFF4;  /* ブランド・プライマリー */
+  --dax-blue-strong:   #00B0F0;  /* 見出し/強調 */
+  --dax-blue-solid:    #5B94F5;  /* 全面塗りスライド背景 */
+
+  /* Accent — kpiee ピンクコーラル */
+  --kpiee-coral:       #FC7878;  /* プロダクトアクセント */
+  --kpiee-coral-soft:  #FFD5D1;  /* ソフト背景シェイプ */
+
+  /* Support accents */
+  --support-green:     #5CCCA8;  /* ポジティブ/OK */
+  --support-yellow:    #FFFF89;  /* マーカー/蛍光 */
+  --alert-red:         #FF0000;  /* アラート/否定 */
+
+  /* Pale tints (淡色背景に使われる) */
+  --tint-blue-1:       #EBF6FC;
+  --tint-blue-2:       #DBEFF9;
+  --tint-blue-3:       #E2EFF9;
+
+  /* ========== Neutrals ========== */
+  --fg-0:              #000000;  /* 黒・絶対強調 */
+  --fg-1:              #434343;  /* 本文 (primary body text) */
+  --fg-2:              #595959;  /* 本文 secondary */
+  --fg-3:              #666666;  /* ラベル/小見出し */
+  --fg-mute:           #B7B7B7;  /* 補助 / 非選択 */
+  --fg-disable:        #CCCCCC;  /* 無効 */
+
+  --bg-page:           #FFFFFF;  /* スライド背景 */
+  --bg-soft:           #F3F3F3;  /* 淡いパネル */
+  --bg-softer:         #F2F2F2;  /* 本当に淡い面 */
+
+  --rule:              #CCCCCC;  /* 罫線 */
+  --rule-soft:         #E5E5E5;
+
+  /* ========== Semantic ========== */
+  --color-primary:     var(--dax-blue);
+  --color-on-primary:  #FFFFFF;
+  --color-accent:      var(--kpiee-coral);
+  --color-success:     var(--support-green);
+  --color-warn:        #FFB020;
+  --color-danger:      var(--alert-red);
+  --color-highlight:   var(--support-yellow);
+
+  /* ========== Typography ========== */
+  --ff-jp:      "Meiryo", "メイリオ", "Hiragino Kaku Gothic ProN", "Hiragino Sans",
+                "Noto Sans JP", "Yu Gothic", "Yu Gothic UI", sans-serif;
+  --ff-en:      "Arial", "Helvetica Neue", Helvetica, var(--ff-jp), sans-serif;
+  --ff-body:    var(--ff-jp);
+  --ff-display: var(--ff-jp);
+  --ff-mono:    "SF Mono", "Menlo", Consolas, "Courier New", monospace;
+
+  /* Weights — Meiryo は Regular(400) / Bold(700) のみ。無理に細くしない */
+  --fw-regular: 400;
+  --fw-medium:  500;  /* Meiryoでは描画されないが fallback 用 */
+  --fw-bold:    700;
+  --fw-black:   900;
+
+  /* Scale — 1920x1080 slides を基準。px 指定 */
+  --fs-hero:       112px;  /* タイトルスライドのど真ん中1語 */
+  --fs-display-xl: 88px;   /* "最高" などのメッセージスライド */
+  --fs-display:    72px;
+  --fs-h1:         56px;   /* セクションタイトル */
+  --fs-h2:         44px;   /* スライド見出し */
+  --fs-h3:         32px;   /* サブ見出し */
+  --fs-body-lg:    24px;   /* 本文大 */
+  --fs-body:       20px;
+  --fs-caption:    16px;
+  --fs-small:      14px;
+  --fs-tag:        12px;   /* "再掲" などの小タグ */
+
+  --lh-tight:  1.15;
+  --lh-normal: 1.5;
+  --lh-loose:  1.75;
+
+  --ls-tight:   -0.01em;
+  --ls-normal:  0;
+  --ls-wide:    0.04em;
+
+  /* ========== Spacing ========== */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  24px;
+  --sp-6:  32px;
+  --sp-7:  48px;
+  --sp-8:  64px;
+  --sp-9:  96px;
+  --sp-10: 128px;
+
+  /* ========== Radii ========== */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-pill: 999px;
+
+  /* ========== Shadows ========== */
+  /* 原本はシャドウ控えめ。薄いものを1〜2段階。 */
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-2: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-3: 0 12px 32px rgba(0,0,0,0.12);
+
+  /* Slide frame */
+  --slide-w: 1920px;
+  --slide-h: 1080px;
+}
+
+/* =====================================================
+ * Semantic utility classes
+ * ===================================================== */
+.dax-h1, h1.dax {
+  font-family: var(--ff-display);
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-bold);
+  color: var(--fg-1);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  margin: 0;
+}
+
+.dax-h2, h2.dax {
+  font-family: var(--ff-display);
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-bold);
+  color: var(--fg-1);
+  line-height: var(--lh-tight);
+  margin: 0;
+}
+
+.dax-h3, h3.dax {
+  font-family: var(--ff-display);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+  color: var(--fg-1);
+  line-height: var(--lh-tight);
+  margin: 0;
+}
+
+.dax-display {
+  font-family: var(--ff-display);
+  font-size: var(--fs-display);
+  font-weight: var(--fw-bold);
+  color: var(--fg-0);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  margin: 0;
+}
+
+.dax-hero {
+  font-family: var(--ff-display);
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-bold);
+  color: var(--fg-0);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.dax-body {
+  font-family: var(--ff-body);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  color: var(--fg-1);
+  line-height: var(--lh-normal);
+  margin: 0;
+}
+
+.dax-body-lg {
+  font-family: var(--ff-body);
+  font-size: var(--fs-body-lg);
+  font-weight: var(--fw-regular);
+  color: var(--fg-1);
+  line-height: var(--lh-normal);
+  margin: 0;
+}
+
+.dax-caption {
+  font-family: var(--ff-body);
+  font-size: var(--fs-caption);
+  color: var(--fg-3);
+  line-height: var(--lh-normal);
+  margin: 0;
+}
+
+.dax-tag {
+  display: inline-block;
+  font-family: var(--ff-body);
+  font-size: var(--fs-tag);
+  color: var(--fg-3);
+  padding: 2px 8px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  background: var(--bg-page);
+  letter-spacing: var(--ls-wide);
+}
+
+/* Emphasis — 原本で多用される「""で囲んだ強調語」 */
+.dax-quote-em {
+  color: var(--dax-blue);
+  font-weight: var(--fw-bold);
+}
+
+/* 蛍光マーカー風（原本で使われる） */
+.dax-marker {
+  background: linear-gradient(transparent 55%, var(--support-yellow) 55%);
+  padding: 0 2px;
+}

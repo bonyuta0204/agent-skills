@@ -1,0 +1,59 @@
+/* Shared card helpers for preview/*.html
+   Each card is ~700px wide and should fit its content to ~150–400px tall. */
+@import url("../colors_and_type.css");
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #FFFFFF;
+  font-family: var(--ff-body);
+  color: var(--fg-1);
+  -webkit-font-smoothing: antialiased;
+}
+
+.card {
+  width: 700px;
+  box-sizing: border-box;
+  padding: 24px;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row { display: flex; gap: 12px; align-items: center; }
+.wrap { display: flex; flex-wrap: wrap; gap: 12px; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+
+.label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  font-weight: var(--fw-bold);
+}
+
+.mono {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  color: var(--fg-3);
+}
+
+.swatch {
+  width: 92px;
+  height: 92px;
+  border-radius: 8px;
+  border: 1px solid var(--rule-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 8px;
+  box-sizing: border-box;
+  color: #fff;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  line-height: 1.2;
+}
+.swatch.light { color: var(--fg-1); }
+.swatch .hex { font-weight: 700; }
+.swatch .name { opacity: 0.85; font-family: var(--ff-body); font-size: 10px; margin-bottom: 2px; }
