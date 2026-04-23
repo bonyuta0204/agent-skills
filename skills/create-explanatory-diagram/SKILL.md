@@ -134,7 +134,11 @@ format は次でよい。
 
 主役は中央に置き、脇役は左右か下部へ逃がす。
 
-### 5. 画像生成 prompt に落とす
+### 5. 画像を作る
+
+実行環境に応じてルートを使い分ける。どちらを選んでも、目的（業務資料として読める密度を持つ説明図）は変わらない。
+
+#### ルート A: imagegen が使える（Codex など）
 
 ラスタ画像が必要なら `imagegen` を使う。
 
@@ -161,6 +165,28 @@ prompt の順序は次がよい。
 ```text
 設計補足資料向けの横長 1 枚の説明図。主題は「Snowflake MERGE が差分反映の主体であり、アプリは前提を整える側である」。白背景の corporate slide-style infographic とし、上部に青いタイトルバーと短いサブタイトル、中央に5ステップの主役フロー、左右に入力条件と結果、下部に小さな表、凡例、注記を置く。主役は Snowflake MERGE の実行パネルで、アプリ側は前段として脇役にする。箱、矢印、表、注記を使って整理し、情報量は多めでも読み順が明確なことを優先する。アプリ内部で一致判定しているように見える表現は避ける。業務資料として落ち着いた青、緑、オレンジ中心の配色。
 ```
+
+#### ルート B: imagegen が使えない（Claude Code など）
+
+自分で SVG を書き、PNG にレンダリングして、その PNG を画像として読み直して視覚レビューする。
+
+手順:
+
+1. SVG をファイルに書く（例: `diagram.svg`）。
+2. `scripts/render-svg.sh <diagram.svg>` を実行して PNG を生成する。必要なら `-w <幅>` で解像度を上げる。スクリプトは出力 PNG の絶対パスを最終行に出す。
+3. その PNG を画像として読み直し、視覚的にレビューする。
+4. 気になる点があれば SVG を直して 2〜3 を繰り返す。
+
+SVG を書くときの方針:
+
+- サイズの目安は `viewBox="0 0 1920 1080"`。縦横比や解像度は文脈に応じて自由に変えてよい。細長い matrix は `1920x720`、縦長の state-update は `1200x1400` のように、主張に合わせる。
+- レイアウトの固定テンプレは使わない。Diagram Brief と選んだ型（pipeline, matrix, decision-flow, etc.）から、その場でパネル位置を決める。
+- 色と font はこの skill の中で閉じさせる。他 skill の design system を引き込まない。業務資料として落ち着いた 3〜4 色に絞るのが扱いやすい。
+- librsvg（`rsvg-convert`）の制約に注意する。
+  - `<foreignObject>` 内の HTML は描画されない。テキストは `<text>` と `<tspan>` で組む。
+  - 自動折返しはされない。改行は `<tspan x=".." dy="..">` で明示する。
+  - 絵文字や外部 web font は使わない。`font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Yu Gothic, Noto Sans JP, sans-serif"` を推奨する。
+  - どうしても CSS flex/grid や HTML 相当の折返しが要る図は、librsvg ではなく Chrome headless での render も検討する（`chrome --headless --screenshot --window-size=W,H file.svg`）。
 
 ### 6. 生成後レビューは 2 段階で行う
 
@@ -191,8 +217,8 @@ prompt の順序は次がよい。
 最低限、次を返す。
 
 - 最終 Diagram Brief
-- 使った prompt
-- 画像
+- 使った prompt または SVG
+- 画像（PNG）
 - 図の下に置く 1〜2 文の補足
 - どの節の直後に置くと効くか
 
@@ -212,6 +238,6 @@ prompt の順序は次がよい。
 
 1. 1 文の主題定義
 2. Diagram Brief
-3. 画像生成 prompt
-4. 生成画像
+3. ルート A では画像生成 prompt、ルート B では SVG と render コマンド
+4. 生成画像（PNG）
 5. 差し込み位置と補足文
