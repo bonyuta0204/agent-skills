@@ -70,6 +70,7 @@ make unlink SKILL=create-design-doc
 | --- | --- |
 | [`create-company-presentation-slides`](skills/create-company-presentation-slides/SKILL.md) | 社内向けの発表資料を、story design、slide-level outline、slide production で固め、dax 社内スライド design system に沿って必要なら PowerPoint 化する。 |
 | [`create-design-doc`](skills/create-design-doc/SKILL.md) | Create kpiee design docs (basic or detail) in kpiee-designs using repo templates. |
+| [`create-explanatory-diagram`](skills/create-explanatory-diagram/SKILL.md) | 設計書の補足資料や要件ディスカッション向けに、スライド風の説明図やインフォグラフィックを、論点整理から画像生成・レビュー反映まで一貫して作る。 |
 | [`create-mermaid-diagram`](skills/create-mermaid-diagram/SKILL.md) | Mermaid 図を壊れにくく作成・修正し、render 検証と syntax/style のチェックまで行う。 |
 | [`code-architecture-review`](skills/code-architecture-review/SKILL.md) | 実装の細部よりも責務配置・依存方向・境界設計に注目して、コードや PR をアーキテクチャ観点でレビューする。 |
 | [`github-create-pr`](skills/github-create-pr/SKILL.md) | GitHub の Pull Request をレビューア向け説明で作成・更新し、repo 固有の preflight、template、milestone も扱う。 |

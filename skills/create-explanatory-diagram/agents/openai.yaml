@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Explanatory Diagram"
+  short_description: "設計補足向けのスライド風説明図を作る"
+  default_prompt: "Use $create-explanatory-diagram to turn a concept, responsibility boundary, or flow into a slide-style explanatory diagram with a diagram brief, image prompt, and insertion guidance."
