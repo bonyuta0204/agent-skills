@@ -6,6 +6,7 @@ SKILLS_DIR  := $(CURDIR)/skills
 SKILL_NAMES := \
 	create-company-presentation-slides \
 	create-design-doc \
+	create-explanatory-diagram \
 	create-mermaid-diagram \
 	code-architecture-review \
 	github-create-pr \
