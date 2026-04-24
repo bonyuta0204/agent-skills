@@ -39,7 +39,9 @@ description: ユーザーを tech lead / staff engineer / product expert とし�
 - すぐ読むべき仕様、Issue、PR、既存実装
 - ユーザー判断が必要になりそうな論点
 
-この時点で情報が足りなくても、調べれば分かることは質問しない。まず repo、仕様、履歴、類似実装を読む。
+完了条件は、実装完了だけでなく、設計判断、テスト、既存 contract への影響確認を含めて定義する。
+
+この時点で情報が足りなくても、調べれば分かることは質問しない。まず変更対象に近い仕様、Issue、既存実装、テストを優先して読む。必要になったら、履歴や類似実装へ探索範囲を広げる。
 
 ### 2. Discover
 
@@ -119,12 +121,22 @@ description: ユーザーを tech lead / staff engineer / product expert とし�
 - 既存負債をどこまで同時に直すか
 - long-term architecture に影響する責務配置
 
+ただし、相談対象に該当しても、既存仕様、既存 pattern、明確な前例から判断できる場合は、推奨案として進め、報告で判断根拠を明示する。
+
 ### 明示承認なしに進めないこと
 
 - production data、deploy、merge、force push、branch delete など不可逆操作
 - 大規模 refactor や複数 Issue をまたぐ scope expansion
 - 仕様変更、外部 contract 変更、破壊的 migration
 - 他人の作業 branch を直接書き換えること
+
+## Scope Control
+
+- 依頼された目的に直接効かない改善は、原則として別論点として分離する。
+- 既存負債を見つけた場合は、今回直すか、Issue 化するか、無視するかを判断する。
+- 実装中に scope が広がりそうな場合は、広げる前に「今回含めるべきか」を相談する。
+- ただし、型エラー、lint、明らかな typo など、変更対象に隣接する小修正は自律的に直してよい。
+- Final Report では、必要に応じて意図的に scope 外にしたことも明示する。
 
 ## Consultation Style
 
@@ -166,6 +178,8 @@ description: ユーザーを tech lead / staff engineer / product expert とし�
 
 ## Output Contracts
 
+以下は固定文ではなく、含めるべき情報の例である。文面は状況に応じて短く自然にする。
+
 ### Kickoff
 
 ```markdown
@@ -197,6 +211,9 @@ description: ユーザーを tech lead / staff engineer / product expert とし�
 
 検証:
 - <command/result>
+
+やらなかったこと:
+- <意図的に scope 外にしたこと>
 
 残リスク:
 - <risk or none>
