@@ -132,11 +132,17 @@ format は次でよい。
 
 ### 5. 画像を作る
 
-実行環境に応じてルートを使い分ける。**imagegen が使える環境では原則ルート A を使う**。SVG (ルート B) は imagegen が使えないときの fallback、あるいは同じ図を座標レベルで何度も微調整したいときに選ぶ。どちらを選んでも、目的（業務資料として読める密度を持つ説明図）は変わらない。
+実行環境に応じてルートを使い分ける。**imagegen が使える環境ではまずルート A を検討する**。説明図は最終的に PNG などのラスタ画像で見られることが多く、imagegen のほうが余白、配色、カード感、情報の強弱が自然に仕上がりやすい。
+
+ただし、**情報量が多い設計図、表、責務分担図、厳密な日本語ラベルや識別子が多い図ではルート B を優先する**。imagegen は見た目を整えやすい一方で、情報密度が薄くなったり、文字が省略・変形されたりしやすい。設計書で source of truth に近い役割を持つ図は、正確なテキストと高い情報密度を優先する。
+
+SVG (ルート B) は単なる fallback ではなく、次の場合の推奨ルートとする。imagegen が使えない、ユーザーが SVG を明示した、既存の SVG/vector 資産に合わせる必要がある、座標・文字をピクセル単位で調整する必要がある、または図の価値が装飾より情報量と正確性にある場合。どちらを選んでも、目的（業務資料として読める密度を持つ説明図）は変わらない。
 
 #### ルート A: imagegen が使える（Codex など）
 
-ラスタ画像が必要なら `imagegen` を使う。
+`imagegen` skill を併用し、組み込み `image_gen` を使う。プロジェクトに差し込む図なら、生成後に `$CODEX_HOME/generated_images/...` から workspace 内の所定パスへ移す。会話プレビューだけで終わらせず、設計書や資料から参照される最終 PNG を repository 内に残す。
+
+imagegen で作る図は、主張が 1 つで、ラベルが短く、見た目の理解しやすさが重要なものに向く。日本語ラベル、ID、SQL 断片などの誤字が許されない要素が多い場合は、imagegen の結果をそのまま採用しない。短い語だけに絞って再生成する、後処理で正確なテキストを重ねる、またはルート B に切り替える。
 
 prompt では、題材だけでなく次を必ず明示する。
 
@@ -145,6 +151,7 @@ prompt では、題材だけでなく次を必ず明示する。
 - multiple boxed panels, arrows, small tables, legends, notes
 - Japanese labels that are readable and concise
 - decorative illustration より information design を優先
+- exact Japanese labels only, no invented text, no decorative filler text
 
 prompt の順序は次がよい。
 
@@ -155,6 +162,7 @@ prompt の順序は次がよい。
 5. 表、凡例、注記
 6. 避けたい誤解
 7. トーン
+8. 生成してよい文字列と、生成してはいけない文字列
 
 例えば次のように書く。
 
