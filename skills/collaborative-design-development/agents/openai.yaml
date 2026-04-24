@@ -1,0 +1,4 @@
+interface:
+  display_name: "Collaborative Design Development"
+  short_description: "AI が senior engineer として設計・実装を主体的に進め、tech lead のユーザーへ重要判断だけ相談する。"
+  default_prompt: "設計と実装を、tech lead の自分と壁打ちしながら主体的に進めてください。"

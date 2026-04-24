@@ -68,6 +68,7 @@ make unlink SKILL=create-design-doc
 
 | Skill | Description |
 | --- | --- |
+| [`collaborative-design-development`](skills/collaborative-design-development/SKILL.md) | ユーザーを tech lead / staff engineer として扱い、AI が senior engineer として設計・実装を主体的に進めながら、重要な技術判断だけ相談する。 |
 | [`create-company-presentation-slides`](skills/create-company-presentation-slides/SKILL.md) | 社内向けの発表資料を、story design、slide-level outline、slide production で固め、dax 社内スライド design system に沿って必要なら PowerPoint 化する。 |
 | [`create-design-doc`](skills/create-design-doc/SKILL.md) | Create kpiee design docs (basic or detail) in kpiee-designs using repo templates. |
 | [`create-explanatory-diagram`](skills/create-explanatory-diagram/SKILL.md) | 設計書の補足資料や要件ディスカッション向けに、スライド風の説明図やインフォグラフィックを、論点整理から画像生成・レビュー反映まで一貫して作る。 |
