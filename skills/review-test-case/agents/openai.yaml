@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Case Review"
+  short_description: "Review test cases by separating viewpoints, patterns, steps, and expected results."
+  default_prompt: "Use $review-test-case to review a test case table or QA sheet and point out viewpoint, pattern, step, and expected-result problems in Japanese."

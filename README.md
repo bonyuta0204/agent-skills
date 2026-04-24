@@ -86,6 +86,7 @@ make unlink SKILL=create-design-doc
 | [`pr-implementation-review`](skills/pr-implementation-review/SKILL.md) | GitHub PR をローカル checkout して、コードの構成・style・PR本文の説明品質まで含めて広くレビューする。 |
 | [`review-product-doc-set`](skills/review-product-doc-set/SKILL.md) | 要件定義書・仕様書・画面項目定義書・必要に応じた Figma を文書セットとして読み、責務分離、重複、整合性の観点でレビューコメント案を返す。 |
 | [`review-design-doc`](skills/review-design-doc/SKILL.md) | GitHub PR 上の kpiee-designs 設計書を、文書品質と設計妥当性の 2 ステップでレビューし、日本語の inline review と総評を返す。 |
+| [`review-test-case`](skills/review-test-case/SKILL.md) | テストケース・観点サマリ・QAシートを、観点 / パターン / 手順・期待値の分離に基づいてレビューする。 |
 | [`slack-ng-to-issue`](skills/slack-ng-to-issue/SKILL.md) | Slack `#kpiee_ng報告` の NG レポートを NG一覧ID 指定で取得し、GitHub Issue として起票する。 |
 
 ## Review skills guide
@@ -100,6 +101,7 @@ make unlink SKILL=create-design-doc
 | [`code-architecture-review`](skills/code-architecture-review/SKILL.md) | 単一 PR や差分の構造 | コードレベルの細部より、責務配置・境界・依存方向を見たい | 実装アーキテクチャ観点のレビュー指摘 |
 | [`review-product-doc-set`](skills/review-product-doc-set/SKILL.md) | Notion / Figma を含む文書セット | 要件定義書・仕様書・画面項目定義書の責務分離、重複、整合性を見たい | 文書セット向けのレビューコメント案 |
 | [`review-design-doc`](skills/review-design-doc/SKILL.md) | `kpiee-designs` の設計書 PR | 設計書の文書品質と設計妥当性を見たい | 設計書向け inline review と総評 |
+| [`review-test-case`](skills/review-test-case/SKILL.md) | テストケース / QAシート | 観点・パターン・手順・期待値の混同や過不足を見たい | 観点設計に基づく指摘と貼り戻し可能な修正案 |
 
 選び方の目安:
 
@@ -109,6 +111,7 @@ make unlink SKILL=create-design-doc
 - コードレベルの細部より責務配置や境界を見たいなら `code-architecture-review`
 - Notion / Figma を含む文書セットの責務分離や整合性を見るなら `review-product-doc-set`
 - 実装ではなく設計書をレビューするなら `review-design-doc`
+- テストケースの観点設計や期待値の書き方を見るなら `review-test-case`
 
 Skill-specific verification example:
 

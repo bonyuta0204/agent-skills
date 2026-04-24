@@ -22,6 +22,7 @@ SKILL_NAMES := \
 	pr-implementation-review \
 	review-product-doc-set \
 	review-design-doc \
+	review-test-case \
 	slack-ng-to-issue
 
 # Destination directories for each tool
