@@ -4,10 +4,10 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  collect_status.sh --repo <owner/repo> --prs <comma_separated_pr_numbers>
+  batch_collect_status.sh --repo <owner/repo> --prs <comma_separated_pr_numbers>
 
 Example:
-  collect_status.sh --repo f-scratch/dx-kpiee --prs 12371,12372,12373
+  batch_collect_status.sh --repo f-scratch/dx-kpiee --prs 12371,12372,12373
 USAGE
 }
 
@@ -55,4 +55,3 @@ for pr in "${PR_ARRAY[@]}"; do
 
   echo "${pr},${status},\"${title}\",${url}"
 done
-

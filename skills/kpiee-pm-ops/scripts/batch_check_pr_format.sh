@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  check_pr_format.sh --repo <owner/repo> --pr <number> --id <implementation_id> \
+  batch_check_pr_format.sh --repo <owner/repo> --pr <number> --id <implementation_id> \
     [--base <expected_base_branch>] [--milestone <expected_milestone>]
 USAGE
 }
@@ -111,4 +111,3 @@ echo "PR: $url"
 if [[ "$failed" -eq 1 ]]; then
   exit 1
 fi
-

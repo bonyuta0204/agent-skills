@@ -15,7 +15,6 @@ SKILL_NAMES := \
 	github-pr-stockgtake \
 	github-pr-review-stocktake \
 	kpiee-bastion-ops \
-	kpiee-batch-fix-pm \
 	kpiee-local-smoke-check \
 	kpiee-playwright-auth \
 	kpiee-pm-ops \

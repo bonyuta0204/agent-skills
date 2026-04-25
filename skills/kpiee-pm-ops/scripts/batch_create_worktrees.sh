@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  create_worktrees.sh \
+  batch_create_worktrees.sh \
     --repo <repo_path> \
     --base <base_branch_or_ref> \
     --id <implementation_id> \
@@ -119,4 +119,3 @@ for issue in "${ISSUE_ARRAY[@]}"; do
   git -C "$REPO" worktree add "$worktree_path" -b "$branch" "$BASE_REF"
   echo "${issue},${branch},${worktree_path},created"
 done
-

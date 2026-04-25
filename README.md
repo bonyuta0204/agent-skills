@@ -81,8 +81,7 @@ make unlink SKILL=create-design-doc
 | [`kpiee-bastion-ops`](skills/kpiee-bastion-ops/SKILL.md) | kpiee の non-prod 環境で、共有 bastion 優先の踏み台ルーティングに従って日常的な確認作業を安全に進め、`it/stg/stg01/stg02` の起動 wrapper も提供する。 |
 | [`kpiee-local-smoke-check`](skills/kpiee-local-smoke-check/SKILL.md) | kpiee の localhost 動作確認で、repo の役割、起動方法、log、認証付き API アクセス、DB 前提、HTTP 最小再現を一貫した runbook として扱う toolkit。 |
 | [`kpiee-playwright-auth`](skills/kpiee-playwright-auth/SKILL.md) | kpiee を playwright-cli で調査・自動化するときの認証を、human login + state-save/load で安定化する。 |
-| [`kpiee-pm-ops`](skills/kpiee-pm-ops/SKILL.md) | PM+Ops orchestrator for kpiee delivery: architecture-aware task decomposition, issue/PR operations, CI/deploy execution, and release reporting via sub-agents. |
-| [`kpiee-batch-fix-pm`](skills/kpiee-batch-fix-pm/SKILL.md) | Run PM-style batch fixes across multiple AI-fixable issues in kpiee repositories with worktree/sub-agent orchestration and CI governance handling. |
+| [`kpiee-pm-ops`](skills/kpiee-pm-ops/SKILL.md) | kpiee の複数Issue/PR進行、1Issue=1PRのバッチ修正、CI waiting承認、PR整備、デプロイ前後の状態整理をPM/Opsとして扱う。 |
 | [`kpiee-stg-log-db-check`](skills/kpiee-stg-log-db-check/SKILL.md) | Investigate kpiee non-production environments (`it`, `stg`, `stg01`, `stg02`) with reusable logs/ECS/DB/Snowflake tools, bastion-hosted env start/stop guidance, and DB route references including atlas-core tenant DB lookup. |
 | [`pr-implementation-review`](skills/pr-implementation-review/SKILL.md) | GitHub PR をローカル checkout して、コードの構成・style・PR本文の説明品質まで含めて広くレビューする。 |
 | [`review-product-doc-set`](skills/review-product-doc-set/SKILL.md) | 要件定義書・仕様書・画面項目定義書・必要に応じた Figma を文書セットとして読み、責務分離、重複、整合性の観点でレビューコメント案を返す。 |
